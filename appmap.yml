@@ -1,0 +1,5 @@
+name: 全球潮位观测系统
+packages:
+  - path: ''
+language: javascript
+appmap_dir: tmp/appmap
