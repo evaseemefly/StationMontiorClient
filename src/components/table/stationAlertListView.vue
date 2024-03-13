@@ -1,7 +1,7 @@
 <template>
 	<div id="station_alert_list" v-loading="isLoading" element-loading-background="loadBackground">
 		<div class="form-header">
-			<h4>站点总潮位极值集合</h4>
+			<h4>{{ title }}</h4>
 			<!-- <div class="primary-title"></div> -->
 			<span></span>
 
@@ -73,18 +73,19 @@ import { NONE_STATION_NAME } from '@/const/default'
 	},
 })
 export default class StationAlertListView extends Vue {
+	@Prop({ type: String, required: false, default: '极值列表' })
+	title: string
+
 	/** 需要获取的站点codes数组 */
 	@Prop({ type: Array, required: false })
 	stationCodes: string[]
 
 	/** 总潮位集合 */
 	@Prop({ default: [], type: Array })
-	distStationsTotalSurgeList: {
+	distStationsSurgeList: {
 		station_code: string
-		sort: number
-		forecast_ts_list: number[]
-		tide_list: number[]
-		surge_list: number[]
+		issue_ts: number
+		surge: number
 	}[]
 
 	stationExtremumList: {
@@ -133,14 +134,12 @@ export default class StationAlertListView extends Vue {
 		)
 	}
 
-	@Watch('distStationsTotalSurgeList')
+	@Watch('distStationsSurgeList')
 	onDistStationsTotalSurgeList(
 		val: {
 			station_code: string
-			sort: number
-			forecast_ts_list: number[]
-			tide_list: number[]
-			surge_list: number[]
+			issue_ts: number
+			surge: number
 		}[]
 	): void {
 		const codes: string[] = val.map((temp) => {
@@ -192,8 +191,8 @@ export default class StationAlertListView extends Vue {
 							stationName: tempStationName,
 							realdata: totalSurgeList[maxIndex],
 							tide: tempTide.tide_list[maxIndex],
-							surge: tempTide.surge_list[maxIndex],
-							dt: new Date(tempTide.forecast_ts_list[maxIndex] * MS_UNIT),
+							surge: tempTide.surge,
+							dt: new Date(tempTide.issue_ts * MS_UNIT),
 						}
 						const targetAlert = filterRes[0]
 						const alerts: { code: string; alert: AlertTideEnum; tide: number }[] = []

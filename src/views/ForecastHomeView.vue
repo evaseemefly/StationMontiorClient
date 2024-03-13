@@ -12,7 +12,8 @@
 			:issueTs="issueTs"
 		></StationInlandSurgeDataFormView>
 		<!-- <div><StationTideFormView></StationTideFormView></div> -->
-		<StationLayoutView :startTs="issueTs" :endTs="endTs" :issueTs="issueTs"></StationLayoutView>
+		<!-- 显示站点指定时间范围内的极值列表视图 -->
+		<StationBreviaryListView :startTs="issueTs" :endTs="endTs"></StationBreviaryListView>
 		<!-- <StationExtremumListView :tyNum="tyNum"></StationExtremumListView> -->
 		<ThumbListView></ThumbListView>
 		<HeaderLogoView title="温带风暴潮预报系统"></HeaderLogoView>
@@ -34,7 +35,7 @@ import HeaderLogoView from '@/components/header/headerLogoView.vue'
 import WdLegendListView from '@/components/toolsBar/wdLegendListView.vue'
 import WaveGridForecastDataFormView from '@/components/forms/WaveGridForecastDataForm.vue'
 import StationInlandSurgeDataFormView from '@/components/forms/StationInlandSurgeDataFormView.vue'
-import StationLayoutView from '@/components/table/stationLayoutView.vue'
+import StationBreviaryListView from '@/components/table/stationBreviaryListView.vue'
 import StationSurgeDataFormView from '@/components/forms/StationSurgeDataFormView.vue'
 import RegionStatisticsCard from '@/components/cards/regionStatisticsCard.vue'
 
@@ -69,7 +70,7 @@ import { MS_UNIT } from '@/const/unit'
 		// StationSurgeDataFormView,
 		StationInlandSurgeDataFormView,
 		RegionStatisticsCard,
-		StationLayoutView,
+		StationBreviaryListView,
 	},
 })
 export default class HomeView extends Vue {

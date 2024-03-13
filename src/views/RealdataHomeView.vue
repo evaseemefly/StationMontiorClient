@@ -34,7 +34,7 @@ import HeaderLogoView from '@/components/header/headerLogoView.vue'
 import WdLegendListView from '@/components/toolsBar/wdLegendListView.vue'
 import WaveGridForecastDataFormView from '@/components/forms/WaveGridForecastDataForm.vue'
 import StationInlandSurgeDataFormView from '@/components/forms/StationInlandSurgeDataFormView.vue'
-import StationLayoutView from '@/components/table/stationLayoutView.vue'
+import StationLayoutView from '@/components/table/stationBreviaryListView.vue'
 import StationSurgeDataFormView from '@/components/forms/StationSurgeDataFormView.vue'
 import RegionStatisticsCard from '@/components/cards/regionStatisticsCard.vue'
 
@@ -71,6 +71,7 @@ import { MS_UNIT } from '@/const/unit'
 		StationInlandSurgeDataFormView,
 		RegionStatisticsCard,
 		StationLayoutView,
+		RealdataMapView,
 	},
 })
 export default class RealdataHomeView extends Vue {

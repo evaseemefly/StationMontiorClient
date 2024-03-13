@@ -11,8 +11,14 @@
 			:distStationsTotalSurgeList="distStationsTotalSurgeList"
 		></StationExtremumListView>
 		<StationAlertListView
+			:title="该日极值"
 			:stationNameDict="stationNameDict"
-			:distStationsTotalSurgeList="distStationsTotalSurgeList"
+			:distStationsSurgeList="distStationsTotalSurgeList"
+		></StationAlertListView>
+		<StationAlertListView
+			:title="整点极值"
+			:stationNameDict="stationNameDict"
+			:distStationsSurgeList="distStationSurgeRealdataMaximumList"
 		></StationAlertListView>
 	</div>
 </template>
@@ -32,7 +38,7 @@ import StationExtremumListView from './stationExtremumListView.vue'
 import { AlertTideEnum } from '@/enum/surge'
 import { GET_SHOW_STATION_EXTREMUM_FORM } from '@/store/types'
 import { IExpandEnum } from '@/enum/common'
-import { loadInLandDistStationTotalSurgeList } from '@/api/surge'
+import { loadInLandDistStationTotalSurgeList, loadAllStationRealdataMaximumList } from '@/api/surge'
 /** - 23-08-17 由于本系统获取增水+天文潮通过一个统一接口获取，将获取逻辑放在外侧 */
 @Component({
 	components: {
@@ -40,15 +46,12 @@ import { loadInLandDistStationTotalSurgeList } from '@/api/surge'
 		StationExtremumListView,
 	},
 })
-export default class StationLayoutView extends Vue {
+export default class StationBreviaryListView extends Vue {
 	@Prop({ type: Number })
 	startTs: number
 
 	@Prop({ type: Number })
 	endTs: number
-
-	@Prop({ type: Number })
-	issueTs: number
 
 	isLoading = false
 
@@ -69,6 +72,13 @@ export default class StationLayoutView extends Vue {
 		forecast_ts_list: number[]
 		tide_list: number[]
 		surge_list: number[]
+	}[] = []
+
+	/** + 24-03-13 所有站点的实况增水极值列表 */
+	distStationSurgeRealdataMaximumList: {
+		station_code: string
+		issue_ts: number
+		surge: number
 	}[] = []
 
 	mounted() {
@@ -95,44 +105,31 @@ export default class StationLayoutView extends Vue {
 	}
 
 	/** { issueTs, startTs, endTs } options */
-	get timestampOpt(): { issueTs: number; startTs: number; endTs: number } {
-		const { issueTs, startTs, endTs } = this
-		return { issueTs, startTs, endTs }
+	get timestampOpt(): { startTs: number; endTs: number } {
+		const { startTs, endTs } = this
+		return { startTs, endTs }
 	}
 
 	@Watch('timestampOpt')
-	onTimestampOpt(val: { issueTs: number; startTs: number; endTs: number }): void {
-		this.loadDistStationTotalsSurgeList(val.startTs, val.endTs, val.issueTs)
+	onTimestampOpt(val: { startTs: number; endTs: number }): void {
+		this.loadDistStationRealdataList(val.startTs, val.endTs)
 	}
 
-	/** 加载所有站点的总潮位集合(增水+天文潮)
-	 * step 1: 加载对应的总潮位集合
-	 * step 2: 分别获取 surge 集合与 tide集合
+	/** 加载所有站点的实况集合
+	 * step 1: 加载所有站点的实况及和
 	 */
-	loadDistStationTotalsSurgeList(startTs: number, endTs: number, issueTs: number) {
+	loadDistStationRealdataList(startTs: number, endTs: number) {
 		this.isLoading = true
-		loadInLandDistStationTotalSurgeList(startTs, endTs, issueTs)
-			.then(
-				(
-					res: IHttpResponse<
-						{
-							station_code: string
-							sort: number
-							forecast_ts_list: number[]
-							tide_list: number[]
-							surge_list: number[]
-						}[]
-					>
-				) => {
-					if (res.status == 200) {
-						// TODO:[-] 23-08-28 由于distStationsTotalSurgeList需要传入子组件中，排序放在外侧执行
-						const sortedRes = res.data.sort((a, b) => {
-							return a.sort - b.sort
-						})
-						this.distStationsTotalSurgeList = sortedRes
-					}
+		loadAllStationRealdataMaximumList(startTs, endTs)
+			.then((res) => {
+				if (res.status == 200) {
+					// TODO:[-] 23-08-28 由于distStationsTotalSurgeList需要传入子组件中，排序放在外侧执行
+					// const sortedRes = res.data.sort((a, b) => {
+					// 	return a.sort - b.sort
+					// })
+					this.distStationSurgeRealdataMaximumList = res.data
 				}
-			)
+			})
 			.then(() => {
 				this.isLoading = false
 			})

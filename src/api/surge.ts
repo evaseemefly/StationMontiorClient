@@ -84,10 +84,46 @@ const loadInLandDistStationTotalSurgeList = (startTs: number, endTs: number, iss
 	})
 }
 
+/**
+ *  * + 24-03-13
+ * 获取全部站点的实况极值(整点)集合
+ * @param startTs
+ * @param endTs
+ * @returns
+ */
+const loadAllStationRealdataMaximumList = (
+	startTs: number,
+	endTs: number
+): Promise<AxiosResponse<{ station_code: string; issue_ts: number; surge: number }[]>> => {
+	/**
+	 * 
+	 * [
+		{
+			"station_code": "YAO",
+			"issue_ts": 1708387200,
+			"issue_dt": "2024-02-20T00:00:00",
+			"surge": 263.0
+		},
+		{
+			"station_code": "PTN",
+			"issue_ts": 1708372800,
+			"issue_dt": "2024-02-19T20:00:00",
+			"surge": 537.0
+		}
+	]
+	 */
+	const url = `${host}${area}/all/dtrange/max/`
+	return axios.get(url, {
+		headers: authHeader(),
+		params: { start_ts: startTs, end_ts: endTs },
+	})
+}
+
 export {
 	loadSurgeListByRecently,
 	loadTargetStationSurgeRealdataList,
 	loadTargetStationTideRealdataList,
 	loadInLandAstronomictideList,
 	loadInLandDistStationTotalSurgeList,
+	loadAllStationRealdataMaximumList,
 }
