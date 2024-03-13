@@ -220,7 +220,7 @@ import { getIntegerList } from '@/util/math'
 	},
 	mixins: [WMSMixin, MapMixin],
 })
-export default class ForecastMapView extends Vue {
+export default class RealdataMapView extends Vue {
 	zoom = 5
 	center: number[] = [29.45, 130.8833]
 	url =
@@ -314,32 +314,12 @@ export default class ForecastMapView extends Vue {
 		val: IScale
 	) => void
 
-	/** 设置当前 潮位等值面色标 实际值数组 */
-	@Mutation(SET_ISOSURGE_COLOR_SCALE_VAL_RANGE, { namespace: 'common' })
-	setIsoSurgeColorScaleValRange
-
-	/** 设置当前 潮位等值面色标 色标颜色数组 */
-	@Mutation(SET_ISOSURGE_COLOR_SCALE_STR_LIST, { namespace: 'common' })
-	setIsoSurgeColorScaleStrList
-
 	/** 设置是否显示 raster layer 图例 */
 	@Mutation(SET_IS_SHOW_RASTER_LEGEND, { namespace: 'map' })
 	setIsShowRasterLayerLegend
 
-	/** 显示网格图层类型 */
-	@Mutation(SET_SCALAR_SHOW_TYPE, { namespace: 'common' })
-	setScalarShowType
-
 	/** 获取当前地图key */
 	@Getter(GET_BASE_MAP_KEY, { namespace: 'map' }) getBaseMapKey
-
-	/** 获取当前产品的发布时间 */
-	@Getter(GET_WAVE_PRODUCT_ISSUE_DATETIME, { namespace: 'wave' })
-	getWaveProductIssueDt: Date
-
-	/** 获取当前产品的发布时间戳 */
-	@Getter(GET_WAVE_PRODUCT_ISSUE_TIMESTAMP, { namespace: 'wave' })
-	getWaveProductIssueTimestamp: number
 
 	/** 获取当前的预报时间(不再监听此变量，改为监听forecastTimestamp. ts=Date.getTime() ) */
 	@Getter(GET_CURRENT_FORECAST_DT, { namespace: 'common' })
@@ -352,10 +332,6 @@ export default class ForecastMapView extends Vue {
 	onForecastDt(val: Date) {
 		this.forecastTimestamp = val.getTime()
 	}
-
-	/** 标量场的显示类型 栅格图层|等值面 */
-	@Getter(GET_SCALAR_SHOW_TYPE, { namespace: 'common' })
-	getScalarShowType: ScalarShowTypeEnum
 
 	@Getter(GET_STATION_CODE, { namespace: 'station' })
 	getStationCode: string
@@ -487,8 +463,6 @@ export default class ForecastMapView extends Vue {
 				break
 		}
 	}
-
-	toHideStationSurgeForm(): void {}
 }
 </script>
 <style lang="less">

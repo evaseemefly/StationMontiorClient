@@ -1,7 +1,7 @@
 <template>
 	<div class="home">
 		<div class="layout-top">
-			<div class="layout-right"><ForecastMapView></ForecastMapView></div>
+			<div class="layout-right"><RealdataMapView></RealdataMapView></div>
 		</div>
 		<!-- 温带预报系统底部的主要操作按钮栏 -->
 		<div class="layout-bottom"><WdSubNavMenuView></WdSubNavMenuView></div>
@@ -15,9 +15,8 @@
 		<StationLayoutView :startTs="issueTs" :endTs="endTs" :issueTs="issueTs"></StationLayoutView>
 		<!-- <StationExtremumListView :tyNum="tyNum"></StationExtremumListView> -->
 		<ThumbListView></ThumbListView>
-		<HeaderLogoView title="温带风暴潮预报系统"></HeaderLogoView>
+		<HeaderLogoView title="业务化海洋观测系统"></HeaderLogoView>
 		<WdLegendListView></WdLegendListView>
-		<!-- <RegionStatisticsCard></RegionStatisticsCard> -->
 	</div>
 </template>
 
@@ -29,6 +28,7 @@ import MainNavMenuView from '@/components/nav/MainNavMenuView.vue'
 import WdSubNavMenuView from '@/components/nav/WdSubNavMenuView.vue'
 // import MainMapView from '@/views/map/MapView.vue'
 import ForecastMapView from '@/views/map/ForecastMapView.vue'
+import RealdataMapView from '@/views/map/RealdataMapView.vue'
 import ThumbListView from '@/components/thumbs/thumbListView.vue'
 import HeaderLogoView from '@/components/header/headerLogoView.vue'
 import WdLegendListView from '@/components/toolsBar/wdLegendListView.vue'

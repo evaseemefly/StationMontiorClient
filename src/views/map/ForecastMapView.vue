@@ -665,6 +665,7 @@ export default class ForecastMapView extends Vue {
 				})
 				.then(async (_) => {
 					if (!isLoadingRasterLayer && surgeRasterInstance.tiffUrl !== null) {
+						console.log('Loading')
 					}
 				})
 				.then((_) => {
