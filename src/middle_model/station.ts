@@ -739,13 +739,15 @@ class StationBaseInfoMidModel {
 	stationName: string
 	lat: number
 	lon: number
+	sort = -1
 
-	constructor(rid: number, code: string, name: string, lat: number, lon: number) {
+	constructor(rid: number, code: string, name: string, lat: number, lon: number, sort = -1) {
 		this.rid = rid
 		this.stationCode = code
 		this.stationName = name
 		this.lat = lat
 		this.lon = lon
+		this.sort = sort
 	}
 }
 

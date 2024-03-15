@@ -62,6 +62,7 @@ import {
 } from '@/store/types'
 import { MS_UNIT } from '@/const/unit'
 import { NONE_STATION_NAME } from '@/const/default'
+import { StationMaximumSurgeMideModel } from '@/middle_model/surge'
 
 @Component({
 	filters: {
@@ -82,11 +83,14 @@ export default class StationAlertListView extends Vue {
 
 	/** 总潮位集合 */
 	@Prop({ default: [], type: Array })
-	distStationsSurgeList: {
+	distStationsSurgeList: StationMaximumSurgeMideModel[]
+
+	@Prop({ type: Object, default: [] })
+	distStationsAlertlevelList: {
 		station_code: string
-		issue_ts: number
-		surge: number
-	}[]
+		alert_tide_list: number[]
+		alert_level_list: number[]
+	}[] = []
 
 	stationExtremumList: {
 		stationCode: string
@@ -100,6 +104,7 @@ export default class StationAlertListView extends Vue {
 		tide: number
 	}[] = []
 
+	/** v-for 此变量 */
 	stationExtremumMergeList: {
 		stationCode: string
 		stationName: string
@@ -123,7 +128,7 @@ export default class StationAlertListView extends Vue {
 	loadBackground = '#20262cd9'
 
 	mounted() {
-		this.loadDistStationAlertList()
+		// this.loadDistStationAlertList()
 	}
 
 	get maxVal(): number {
@@ -152,68 +157,6 @@ export default class StationAlertListView extends Vue {
 					alert_tide_list: (4) [571, 596, 621, 646]
 					station_code: "AJS"
 				 */
-				// 将海洋站极值集合与四色警戒潮位集合merge
-				let stationExtreMergeList = []
-				val.forEach((tempTide) => {
-					const filterRes = alert.data.filter((temp) => {
-						return temp.station_code == tempTide.station_code
-					})
-					if (filterRes.length > 0) {
-						// TODO:[-] 23-08-21 找到 增水极值
-						/** 总潮位集合 */
-						const totalSurgeList: number[] = []
-						for (let index = 0; index < tempTide.surge_list.length; index++) {
-							totalSurgeList.push(
-								tempTide.surge_list[index] + tempTide.tide_list[index]
-							)
-						}
-						let tempStationFilter = this.stationNameDict.filter((x) => {
-							return x.name == tempTide.station_code
-						})
-						let tempStationName: string =
-							tempStationFilter.length > 0
-								? tempStationFilter[0].chname
-								: NONE_STATION_NAME
-						// 找到总潮位极值所在位置
-						/** 总潮位极值位置 */
-						let maxIndex = 0
-						totalSurgeList.reduce((accuVal, currentVal, currentIndex) => {
-							if (accuVal > currentVal) {
-								return accuVal
-							} else {
-								maxIndex = currentIndex
-								return currentVal
-							}
-						})
-						const tempBaseInfo = {
-							// surge: totalSurgeList,
-							code: tempTide.station_code,
-							stationName: tempStationName,
-							realdata: totalSurgeList[maxIndex],
-							tide: tempTide.tide_list[maxIndex],
-							surge: tempTide.surge,
-							dt: new Date(tempTide.issue_ts * MS_UNIT),
-						}
-						const targetAlert = filterRes[0]
-						const alerts: { code: string; alert: AlertTideEnum; tide: number }[] = []
-						for (let index = 0; index < targetAlert.alert_level_list.length; index++) {
-							const tempAlertLevel = targetAlert.alert_level_list[index]
-							const tempAlertTide = targetAlert.alert_tide_list[index]
-							alerts.push({
-								code: tempTide.station_code,
-								alert: tempAlertLevel,
-								tide: tempAlertTide,
-							})
-						}
-						let stationExtremumMerge = {
-							alerts: alerts,
-							...tempBaseInfo,
-							stationCode: tempTide.station_code,
-						}
-						stationExtreMergeList.push(stationExtremumMerge)
-					}
-				})
-				this.stationExtremumMergeList = stationExtreMergeList
 			}
 		})
 	}
@@ -275,19 +218,6 @@ export default class StationAlertListView extends Vue {
 				}
 			}
 		)
-	}
-
-	loadDistStationAlertList() {
-		loadDistStationsAlertLevelList().then((alert) => {
-			if (alert.status == 200) {
-				/** 
-				 * alert_level_list: (4) [5001, 5002, 5003, 5004]
-					alert_tide_list: (4) [571, 596, 621, 646]
-					station_code: "AJS"
-				 */
-				console.log(alert.data)
-			}
-		})
 	}
 
 	/** 提交选中的 海洋站极值info */

@@ -89,7 +89,7 @@ const loadStationAlertLevelDataList = (
 const loadDistStationsAlertLevelList = (): Promise<
 	AxiosResponse<{ station_code: string; alert_tide_list: number[]; alert_level_list: number[] }[]>
 > => {
-	const url = `${host}${area}/dist/stations/alertlevel`
+	const url = `${host}${area}/alert/dist/stations/alertlevel`
 	return axios.get(url, {
 		headers: authHeader(),
 	})
@@ -124,6 +124,34 @@ const loadStationNameDict = () => {
  */
 const loadStationBaseInfoList = () => {
 	const url = `${host}${area}/base/list`
+	return axios.get(url, {
+		headers: authHeader(),
+	})
+}
+
+/**
+ * + 24-03-15 获取所有站点的基础信息集合
+ * @returns
+ */
+const loadDistStationBaseInfoList = (): Promise<
+	AxiosResponse<
+		{
+			id: number
+			name: string
+			code: string
+			lat: number
+			lon: number
+			is_abs: boolean
+			pid: number
+			base_level_diff: number
+			d85: number
+			is_in_use: boolean
+			sort: number
+			is_in_common_use: boolean
+		}[]
+	>
+> => {
+	const url = `${host}${area}/base/all/list`
 	return axios.get(url, {
 		headers: authHeader(),
 	})
@@ -300,4 +328,5 @@ export {
 	loadAllStationLastSurge,
 	loadInlandStationMaxSurge,
 	loadDistStationsAlertLevelList,
+	loadDistStationBaseInfoList,
 }

@@ -7,19 +7,21 @@
 		element-loading-background="rgba(28, 34, 52, 0.733)"
 	>
 		<StationExtremumListView
+			:title="增水极值"
 			:stationNameDict="stationNameDict"
-			:distStationsTotalSurgeList="distStationsTotalSurgeList"
+			:distStationsTotalSurgeList="distStationRealdataList"
 		></StationExtremumListView>
 		<StationAlertListView
-			:title="该日极值"
+			:title="总潮位极值"
 			:stationNameDict="stationNameDict"
-			:distStationsSurgeList="distStationsTotalSurgeList"
+			:distStationsSurgeList="distStationRealdataMaximumList"
+			:distStationsAlertlevelList="distStationsAlertlevelList"
 		></StationAlertListView>
-		<StationAlertListView
+		<!-- <StationAlertListView
 			:title="整点极值"
 			:stationNameDict="stationNameDict"
 			:distStationsSurgeList="distStationSurgeRealdataMaximumList"
-		></StationAlertListView>
+		></StationAlertListView> -->
 	</div>
 </template>
 <script lang="ts">
@@ -39,6 +41,7 @@ import { AlertTideEnum } from '@/enum/surge'
 import { GET_SHOW_STATION_EXTREMUM_FORM } from '@/store/types'
 import { IExpandEnum } from '@/enum/common'
 import { loadInLandDistStationTotalSurgeList, loadAllStationRealdataMaximumList } from '@/api/surge'
+import { DistStationSurgeListMidModel, StationMaximumSurgeMideModel } from '@/middle_model/surge'
 /** - 23-08-17 由于本系统获取增水+天文潮通过一个统一接口获取，将获取逻辑放在外侧 */
 @Component({
 	components: {
@@ -47,92 +50,77 @@ import { loadInLandDistStationTotalSurgeList, loadAllStationRealdataMaximumList 
 	},
 })
 export default class StationBreviaryListView extends Vue {
-	@Prop({ type: Number })
-	startTs: number
+	@Prop({ type: Date })
+	startTs
 
-	@Prop({ type: Number })
-	endTs: number
+	@Prop({ type: Date })
+	endTs
+
+	/** 不同站点的天文潮集合
+	 * TODO:[*] 24-03-15 此处将数据类型修改为与distStationRealdataList一致
+	 */
+	@Prop({ type: Object, default: [] })
+	distStationAstronmictideList: DistStationSurgeListMidModel[]
+
+	/** 不同站点的总潮位集合 */
+	@Prop({ type: Object, default: [] })
+	distStationRealdataList: DistStationSurgeListMidModel[]
+
+	/** + 24-03-14 所有站点的警戒潮位集合 */
+	@Prop({ type: Object, default: [] })
+	distStationsAlertlevelList: {
+		station_code: string
+		alert_tide_list: number[]
+		alert_level_list: number[]
+	}[] = []
+
+	/** 不同站点的实况极值集合(单一站点只显示一个极值时间) */
+	distStationRealdataMaximumList: StationMaximumSurgeMideModel[] = []
 
 	isLoading = false
 
 	/** 海洋站名称中英文对照字典 */
 	stationNameDict: { name: string; chname: string; sort: number }[] = []
 
-	/** 不同站点的总潮位集合(surge+tide) 
-	 * TODO:[-] 23-08-18 注意此处需要将 以下格式转换为 {
-		surge: number
-		dt: Date
-		realdata: number
-		tide: number
-	}[]
-	*/
-	distStationsTotalSurgeList: {
-		station_code: string
-		sort: number
-		forecast_ts_list: number[]
-		tide_list: number[]
-		surge_list: number[]
-	}[] = []
-
-	/** + 24-03-13 所有站点的实况增水极值列表 */
-	distStationSurgeRealdataMaximumList: {
-		station_code: string
-		issue_ts: number
-		surge: number
-	}[] = []
+	@Watch('distStationRealdataList')
+	onDistStationRealdataList(val: DistStationSurgeListMidModel[]) {
+		this.distStationRealdataMaximumList = []
+		for (let index = 0; index < val.length; index++) {
+			const elementStation = val[index]
+			// 找到每个站点的总潮位极值及出现时间
+			/** 实况中的极值 */
+			var max = Math.max(...elementStation.surgeList)
+			/** 实况极值所在位置 */
+			var indexOfMax = elementStation.surgeList.indexOf(max)
+			/** 极值对应的时间戳 */
+			var tsOfMax = elementStation.tsList[indexOfMax]
+			this.distStationRealdataMaximumList.push(
+				new StationMaximumSurgeMideModel(elementStation.stationCode, tsOfMax, max)
+			)
+		}
+	}
 
 	mounted() {
 		const self = this
 		self.stationNameDict = []
 		// TODO:[*] 23-11-20 加载首页时会多次触发的加载国内站点集合
 		//1- 页面首次加载加载站点对应字典
-		loadInlandStationList().then(
-			(res: IHttpResponse<{ code: string; name: string; sort: number }[]>) => {
-				if (res.status === 200) {
-					res.data.length > 0
-						? res.data.forEach((temp) => {
-								self.stationNameDict.push({
-									name: temp.code,
-									sort: temp.sort,
-									chname: temp.name,
-								})
-						  })
-						: ''
-				}
-			}
-		)
+		// loadInlandStationList().then(
+		// 	(res: IHttpResponse<{ code: string; name: string; sort: number }[]>) => {
+		// 		if (res.status === 200) {
+		// 			res.data.length > 0
+		// 				? res.data.forEach((temp) => {
+		// 						self.stationNameDict.push({
+		// 							name: temp.code,
+		// 							sort: temp.sort,
+		// 							chname: temp.name,
+		// 						})
+		// 				  })
+		// 				: ''
+		// 		}
+		// 	}
+		// )
 		// this.loadDistStationTotalsSurgeList(this.startTs, this.endTs, this.issueTs)
-	}
-
-	/** { issueTs, startTs, endTs } options */
-	get timestampOpt(): { startTs: number; endTs: number } {
-		const { startTs, endTs } = this
-		return { startTs, endTs }
-	}
-
-	@Watch('timestampOpt')
-	onTimestampOpt(val: { startTs: number; endTs: number }): void {
-		this.loadDistStationRealdataList(val.startTs, val.endTs)
-	}
-
-	/** 加载所有站点的实况集合
-	 * step 1: 加载所有站点的实况及和
-	 */
-	loadDistStationRealdataList(startTs: number, endTs: number) {
-		this.isLoading = true
-		loadAllStationRealdataMaximumList(startTs, endTs)
-			.then((res) => {
-				if (res.status == 200) {
-					// TODO:[-] 23-08-28 由于distStationsTotalSurgeList需要传入子组件中，排序放在外侧执行
-					// const sortedRes = res.data.sort((a, b) => {
-					// 	return a.sort - b.sort
-					// })
-					this.distStationSurgeRealdataMaximumList = res.data
-				}
-			})
-			.then(() => {
-				this.isLoading = false
-			})
 	}
 
 	/** store -> 是否显示fom t:显示 */

@@ -262,9 +262,6 @@ export default class RealdataMapView extends Vue {
 	/** 当前的海洋站潮位list */
 	surgeStationList: IStationInfo[] = []
 
-	/** 海洋站基础信息 集合 */
-	stationBaseInfoList: StationBaseInfoMidModel[] = []
-
 	/** true:进行地图打点操作 */
 	@Getter(GET_IS_SELECT_LOOP, { namespace: 'map' }) getSelectLoop: boolean
 
@@ -425,10 +422,8 @@ export default class RealdataMapView extends Vue {
 
 	/** + 23-03-27 加载 潮位站基础信息集合 -> 生成一个集合 */
 	async loadBaseStationList(): Promise<void> {
-		this.stationBaseInfoList = []
 		const stationBaseInfo = new StationBaseInfo()
 		await stationBaseInfo.getAllInlandStationInfo()
-		this.stationBaseInfoList = stationBaseInfo.allStationBaseInfoList
 		this.setStationsBaseInfo(stationBaseInfo.allStationBaseInfoList)
 	}
 

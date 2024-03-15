@@ -71,6 +71,7 @@ import { IExpandEnum } from '@/enum/common'
 import SurgeValuePrgressLineView from '@/components/progress/surgeValueProgressView.vue'
 import station from '@/store/modules/station'
 import { MS_UNIT } from '@/const/unit'
+import { StationBaseInfoMidModel } from '@/middle_model/station'
 /** 海洋站极值列表 */
 @Component({
 	filters: {
@@ -82,6 +83,9 @@ import { MS_UNIT } from '@/const/unit'
 	},
 })
 export default class StationExtremumListView extends Vue {
+	@Prop({ type: String, default: '极值显示' })
+	title
+
 	/** 台风编号(str) */
 	@Prop({ default: DEFAULT_TY_NUM, type: String })
 	tyNum: string
@@ -91,12 +95,10 @@ export default class StationExtremumListView extends Vue {
 
 	/** 总潮位集合 */
 	@Prop({ default: [], type: Array })
-	distStationsTotalSurgeList: {
+	distStationRealdataList: {
 		station_code: string
-		sort: number
-		forecast_ts_list: number[]
-		tide_list: number[]
 		surge_list: number[]
+		ts_list: number[]
 	}[]
 
 	/** 页面加载时的背景颜色 */
@@ -115,7 +117,12 @@ export default class StationExtremumListView extends Vue {
 		tide: number
 	}[] = []
 
-	/** 海洋站名称中英文对照字典 */
+	@Prop({ default: [], type: Array })
+	distStationBaseInfoList: StationBaseInfoMidModel[]
+
+	/** 海洋站名称中英文对照字典
+	 * 由 distStationBaseInfoList 替代
+	 */
 	@Prop({ type: Array, required: true })
 	stationNameDict: { name: string; chname: string; sort: number }[]
 
@@ -137,14 +144,12 @@ export default class StationExtremumListView extends Vue {
 	/** TODO:[-] 23-08-18
 	 * 将 所有站点的总潮位集合 按照 station_code 提取每个站点的极值及出现时间
 	 */
-	@Watch('distStationsTotalSurgeList')
-	onDistStationsTotalSurgeList(
+	@Watch('distStationRealdataList')
+	onDistStationRealdataList(
 		val: {
 			station_code: string
-			sort: number
-			forecast_ts_list: number[]
-			tide_list: number[]
 			surge_list: number[]
+			ts_list: number[]
 		}[]
 	): void {
 		/** 海洋站增水极值集合 */
@@ -177,25 +182,25 @@ export default class StationExtremumListView extends Vue {
 				}
 			})
 
-			const tempStationExtremum: {
-				stationCode: string
-				stationName: string
-				/** 增水 */
-				surge: number
-				dt: Date
-				/** 实况 */
-				realdata: number
-				/** 天文潮 */
-				tide: number
-			} = {
-				stationCode: stationElement.station_code,
-				stationName: tempStationName,
-				realdata: 0,
-				surge: stationElement.surge_list[maxIndex],
-				tide: stationElement.tide_list[maxIndex],
-				dt: new Date(stationElement.forecast_ts_list[maxIndex] * MS_UNIT),
-			}
-			stationSurgeExtremumList.push(tempStationExtremum)
+			// const tempStationExtremum: {
+			// 	stationCode: string
+			// 	stationName: string
+			// 	/** 增水 */
+			// 	surge: number
+			// 	dt: Date
+			// 	/** 实况 */
+			// 	realdata: number
+			// 	/** 天文潮 */
+			// 	tide: number
+			// } = {
+			// 	stationCode: stationElement.station_code,
+			// 	stationName: tempStationName,
+			// 	realdata: 0,
+			// 	surge: stationElement.surge_list[maxIndex],
+			// 	tide: stationElement.tide_list[maxIndex],
+			// 	dt: new Date(stationElement.forecast_ts_list[maxIndex] * MS_UNIT),
+			// }
+			// stationSurgeExtremumList.push(tempStationExtremum)
 		}
 		this.stationExtremumList = stationSurgeExtremumList
 	}

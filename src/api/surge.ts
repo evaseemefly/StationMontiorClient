@@ -70,6 +70,25 @@ const loadInLandAstronomictideList = (code: string, start: number, end: number) 
 }
 
 /**
+ * + 24-03-14 获取所有站点时间范围内的天文潮集合
+ * @param start
+ * @param end
+ * @returns
+ */
+const loadDistAstronomictideList = (
+	start: number,
+	end: number
+): Promise<
+	AxiosResponse<{ station_code: string; forecast_ts_list: number[]; tide_list: number[] }[]>
+> => {
+	const url = `${host}${area}/astronomictide/dist/dtrang`
+	return axios.get(url, {
+		headers: authHeader(),
+		params: { start_ts: start, end_ts: end },
+	})
+}
+
+/**
  * 获取国内所有站点的 [start,end] issueTs 发布的总潮位集合
  * @param startTs
  * @param endTs
@@ -112,7 +131,24 @@ const loadAllStationRealdataMaximumList = (
 		}
 	]
 	 */
-	const url = `${host}${area}/all/dtrange/max/`
+	const url = `${host}${area}/realtime/all/dtrange/max/`
+	return axios.get(url, {
+		headers: authHeader(),
+		params: { start_ts: startTs, end_ts: endTs },
+	})
+}
+
+/**
+ * + 24-03-15 获取所有站点实况集合
+ * @param startTs
+ * @param endTs
+ * @returns
+ */
+const loadDistStationRealdataList = (
+	startTs: number,
+	endTs: number
+): Promise<AxiosResponse<{ station_code: string; surge_list: number[]; ts_list: number[] }[]>> => {
+	const url = `${host}${area}/realtime/dist/dtrange/perclock/`
 	return axios.get(url, {
 		headers: authHeader(),
 		params: { start_ts: startTs, end_ts: endTs },
@@ -126,4 +162,6 @@ export {
 	loadInLandAstronomictideList,
 	loadInLandDistStationTotalSurgeList,
 	loadAllStationRealdataMaximumList,
+	loadDistAstronomictideList,
+	loadDistStationRealdataList,
 }
