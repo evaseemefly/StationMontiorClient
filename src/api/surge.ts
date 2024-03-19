@@ -138,6 +138,18 @@ const loadAllStationRealdataMaximumList = (
 	})
 }
 
+/**+ 24-03-19
+ * 加载所有站点的指定时间范围内的极值集合 */
+const loadDistStationRealdataExtremumList = (
+	startTs: number,
+	endTs: number
+): Promise<AxiosResponse<{ station_code: string; issue_ts: number; surge: number }[]>> => {
+	const url = `${host}${area}/realtime/dist/dtrange/extreme/maximum`
+	return axios.get(url, {
+		headers: authHeader(),
+		params: { start_ts: startTs, end_ts: endTs },
+	})
+}
 /**
  * + 24-03-15 获取所有站点实况集合
  * @param startTs
@@ -164,4 +176,5 @@ export {
 	loadAllStationRealdataMaximumList,
 	loadDistAstronomictideList,
 	loadDistStationRealdataList,
+	loadDistStationRealdataExtremumList,
 }

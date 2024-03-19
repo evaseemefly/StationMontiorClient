@@ -12,8 +12,9 @@
 			:distStationsTotalSurgeList="distStationRealdataList"
 		></StationExtremumListView>
 		<StationAlertListView
-			:title="总潮位极值"
-			:stationNameDict="stationNameDict"
+			:title="'总潮位极值'"
+			:isFinished="isFinished"
+			:stationNameDicts="stationNameDicts"
 			:distStationsSurgeList="distStationRealdataMaximumList"
 			:distStationsAlertlevelList="distStationsAlertlevelList"
 		></StationAlertListView>
@@ -42,6 +43,7 @@ import { GET_SHOW_STATION_EXTREMUM_FORM } from '@/store/types'
 import { IExpandEnum } from '@/enum/common'
 import { loadInLandDistStationTotalSurgeList, loadAllStationRealdataMaximumList } from '@/api/surge'
 import { DistStationSurgeListMidModel, StationMaximumSurgeMideModel } from '@/middle_model/surge'
+import { StationBaseInfoMidModel } from '@/middle_model/station'
 /** - 23-08-17 由于本系统获取增水+天文潮通过一个统一接口获取，将获取逻辑放在外侧 */
 @Component({
 	components: {
@@ -50,40 +52,52 @@ import { DistStationSurgeListMidModel, StationMaximumSurgeMideModel } from '@/mi
 	},
 })
 export default class StationBreviaryListView extends Vue {
-	@Prop({ type: Date })
-	startTs
+	/** 控制加载遮罩 */
+	@Prop({ type: Boolean, default: false })
+	isLoading: boolean
 
-	@Prop({ type: Date })
-	endTs
+	/** 通知子组件所有异步请求均执行结束 */
+	@Prop({ type: Boolean, default: false })
+	isFinished: boolean
 
 	/** 不同站点的天文潮集合
 	 * TODO:[*] 24-03-15 此处将数据类型修改为与distStationRealdataList一致
 	 */
-	@Prop({ type: Object, default: [] })
+	@Prop({ type: Array, default: [] })
 	distStationAstronmictideList: DistStationSurgeListMidModel[]
 
 	/** 不同站点的总潮位集合 */
-	@Prop({ type: Object, default: [] })
+	@Prop({ type: Array, default: [] })
 	distStationRealdataList: DistStationSurgeListMidModel[]
 
 	/** + 24-03-14 所有站点的警戒潮位集合 */
-	@Prop({ type: Object, default: [] })
+	@Prop({ type: Array, default: [] })
 	distStationsAlertlevelList: {
 		station_code: string
 		alert_tide_list: number[]
 		alert_level_list: number[]
 	}[] = []
 
-	/** 不同站点的实况极值集合(单一站点只显示一个极值时间) */
+	/** 不同站点的基础信息集合(经纬度、sort、code、name及其他) */
+	@Prop({ type: Array, default: [] })
+	distStationBaseInfoList: StationBaseInfoMidModel[] = []
+
+	/** 不同站点的实况极值集合(单一站点只显示一个极值时间——从每个站点的整点实况集合获取) */
 	distStationRealdataMaximumList: StationMaximumSurgeMideModel[] = []
 
-	isLoading = false
-
 	/** 海洋站名称中英文对照字典 */
-	stationNameDict: { name: string; chname: string; sort: number }[] = []
+	stationNameDicts: { name: string; chname: string; sort: number }[] = []
 
-	@Watch('distStationRealdataList')
-	onDistStationRealdataList(val: DistStationSurgeListMidModel[]) {
+	@Watch('isFinished')
+	OnIsFinished(val: boolean) {
+		if (val) {
+			this.loadDistStationRealdataMaximumList(this.distStationRealdataList)
+			this.loadDistStationNameDicts(this.distStationBaseInfoList)
+		}
+	}
+
+	/** 根据不同站点的整点实况集合获取对应极值列表 this.distStationRealdataList -> 找到每个站点的极值 */
+	loadDistStationRealdataMaximumList(val: DistStationSurgeListMidModel[]) {
 		this.distStationRealdataMaximumList = []
 		for (let index = 0; index < val.length; index++) {
 			const elementStation = val[index]
@@ -100,27 +114,20 @@ export default class StationBreviaryListView extends Vue {
 		}
 	}
 
+	/** 从站点基础信息集合提取 站点code:name 字典
+	 * this.distStationBaseInfoList
+	 */
+	loadDistStationNameDicts(val: StationBaseInfoMidModel[]) {
+		let stationDicts = []
+		stationDicts = val.map((temp) => {
+			return { name: temp.stationCode, chname: temp.stationName, sort: temp.sort }
+		})
+		this.stationNameDicts = stationDicts
+	}
+
 	mounted() {
 		const self = this
-		self.stationNameDict = []
-		// TODO:[*] 23-11-20 加载首页时会多次触发的加载国内站点集合
-		//1- 页面首次加载加载站点对应字典
-		// loadInlandStationList().then(
-		// 	(res: IHttpResponse<{ code: string; name: string; sort: number }[]>) => {
-		// 		if (res.status === 200) {
-		// 			res.data.length > 0
-		// 				? res.data.forEach((temp) => {
-		// 						self.stationNameDict.push({
-		// 							name: temp.code,
-		// 							sort: temp.sort,
-		// 							chname: temp.name,
-		// 						})
-		// 				  })
-		// 				: ''
-		// 		}
-		// 	}
-		// )
-		// this.loadDistStationTotalsSurgeList(this.startTs, this.endTs, this.issueTs)
+		self.stationNameDicts = []
 	}
 
 	/** store -> 是否显示fom t:显示 */

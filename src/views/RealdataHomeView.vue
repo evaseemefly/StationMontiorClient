@@ -13,8 +13,8 @@
 		></StationInlandSurgeDataFormView>
 		<!-- <div><StationTideFormView></StationTideFormView></div> -->
 		<StationBreviaryListView
-			:startTs="issueTs"
-			:endTs="endTs"
+			:isLoading="isLoading"
+			:isFinished="isFinished"
 			:distStationAstronmictideList="distStationAstronmictideList"
 			:distStationRealdataList="distStationRealdataList"
 			:distStationsAlertlevelList="distStationsAlertlevelList"
@@ -68,6 +68,7 @@ import {
 	loadAllStationRealdataMaximumList,
 	loadDistAstronomictideList,
 	loadDistStationRealdataList,
+	loadDistStationRealdataExtremumList,
 } from '@/api/surge'
 import { loadDistStationBaseInfoList, loadDistStationsAlertLevelList } from '@/api/station'
 
@@ -93,16 +94,20 @@ import { DistStationSurgeListMidModel } from '@/middle_model/surge'
 	},
 })
 export default class RealdataHomeView extends Vue {
-	// issueTs = 1690804800
-
-	/** 当前的海洋站潮位list */
-	surgeStationList: IStationInfo[] = []
-
 	/** 海洋站基础信息 集合 */
 	distStationBaseInfoList: StationBaseInfoMidModel[] = []
 
-	/** + 24-03-13 所有站点的实况增水极值列表 */
+	/** + 24-03-13 起止时间范围内所有站点的实况增水极值列表(每个站点指定时间范围内有高高潮，低高潮等，非唯一)
+	 *  目前未使用
+	 */
 	distStationSurgeRealdataMaximumList: {
+		station_code: string
+		issue_ts: number
+		surge: number
+	}[] = []
+
+	/** 不同站点的极值集合——唯一(每日极值——精确至min) */
+	distStationSurgeRealdataExtremumList: {
 		station_code: string
 		issue_ts: number
 		surge: number
@@ -121,17 +126,31 @@ export default class RealdataHomeView extends Vue {
 	/** 所有站点实况集合 */
 	distStationRealdataList: DistStationSurgeListMidModel[] = []
 
+	/** 控制加载遮罩 */
 	isLoading = false
+	/** 通知子组件所有异步请求均执行结束 */
+	isFinished = false
+
+	/** 一次性加载所有异步请求 */
+	async initLoad() {
+		this.isLoading = true
+		// 一次性加载所有所需异步请求
+		return Promise.all([
+			this.loadDistStationRealdataList(this.issueTs, this.endTs),
+			this.loadDistStationAlertlevelList(),
+			this.loadDistStationAstronomictideList(this.issueTs, this.endTs),
+			this.loadDistStationBaseInfoList(),
+			this.loadDistStationRealdataExtremumList(this.issueTs, this.endTs),
+		]).then(() => {
+			console.log('执行所有异步请求完毕')
+			this.isLoading = false
+			this.isFinished = true
+		})
+	}
 
 	mounted() {
-		// step1: 加载所有站点的当前实况集合
-		this.loadDistStationRealdataList(this.issueTs, this.endTs)
-		// step2:加载所有站点的警戒潮位集合
-		this.loadDistStationAlertlevelList()
-		// step3: 加载所有站点的天文潮集合
-		this.loadDistStationAstronomictideList(this.issueTs, this.endTs)
-		// step4: 加载所有站点的基础信息
-		this.loadDistStationBaseInfoList()
+		this.isFinished = false
+		this.initLoad()
 	}
 
 	//TODO:[*] 24-03-14 测试时暂时替换为固定值
@@ -149,22 +168,12 @@ export default class RealdataHomeView extends Vue {
 		return this.issueTs + this.timespan
 	}
 
-	/** { issueTs, startTs, endTs } options */
-	get timestampOpt(): { issueTs: number; endTs: number } {
-		const { issueTs, endTs } = this
-		return { issueTs, endTs }
-	}
-
-	@Watch('timestampOpt')
-	onTimestampOpt(val: { startTs: number; endTs: number }): void {
-		this.loadDistStationRealdataList(val.startTs, val.endTs)
-	}
-
 	/** 加载所有站点的实况极值集合
-	 * step 1: 加载所有站点的实况及和
+	 * (每个站点指定时间范围内有高高潮，低高潮等，非唯一)
+	 *  暂时不使用
 	 */
 	loadDistStationRealdataMaximumList(startTs: number, endTs: number) {
-		this.isLoading = true
+		// this.isLoading = true
 		loadAllStationRealdataMaximumList(startTs, endTs)
 			.then((res) => {
 				if (res.status == 200) {
@@ -176,14 +185,22 @@ export default class RealdataHomeView extends Vue {
 				}
 			})
 			.then(() => {
-				this.isLoading = false
+				// this.isLoading = false
 			})
+	}
+
+	loadDistStationRealdataExtremumList(startTs: number, endTs: number) {
+		loadDistStationRealdataExtremumList(startTs, endTs).then((res) => {
+			if (res.status == 200) {
+				this.distStationSurgeRealdataExtremumList = res.data
+			}
+		})
 	}
 
 	/** 加载所有站点实况集合 */
 	loadDistStationRealdataList(startTs: number, endTs: number) {
-		this.isLoading = true
-		loadDistStationRealdataList(startTs, endTs)
+		// this.isLoading = true
+		return loadDistStationRealdataList(startTs, endTs)
 			.then((res) => {
 				if (res.status == 200) {
 					// TODO:[-] 23-08-28 由于distStationsTotalSurgeList需要传入子组件中，排序放在外侧执行
@@ -197,42 +214,63 @@ export default class RealdataHomeView extends Vue {
 				}
 			})
 			.then(() => {
-				this.isLoading = false
+				// this.isLoading = false
+				console.log('loadDistStationRealdataList over')
 			})
 	}
 
+	/** 加载所有站点的警戒潮位集合 */
 	loadDistStationAlertlevelList() {
-		loadDistStationsAlertLevelList().then((res) => {
-			this.distStationsAlertlevelList = res.data
-		})
+		return loadDistStationsAlertLevelList()
+			.then((res) => {
+				if (res.status == 200) {
+					this.distStationsAlertlevelList = res.data
+				}
+			})
+			.then(() => {
+				console.log('loadDistStationAlertlevelList over')
+			})
 	}
 
+	/** 加载所有站点的天文潮集合 */
 	loadDistStationAstronomictideList(startTs, endTs) {
-		loadDistAstronomictideList(startTs, endTs).then((res) => {
-			this.distStationAstronmictideList = res.data.map((temp) => {
-				return new DistStationSurgeListMidModel(
-					temp.station_code,
-					temp.forecast_ts_list,
-					temp.tide_list
-				)
+		return loadDistAstronomictideList(startTs, endTs)
+			.then((res) => {
+				if (res.status == 200) {
+					this.distStationAstronmictideList = res.data.map((temp) => {
+						return new DistStationSurgeListMidModel(
+							temp.station_code,
+							temp.forecast_ts_list,
+							temp.tide_list
+						)
+					})
+				}
 			})
-		})
+			.then(() => {
+				console.log('loadDistStationAstronomictideList over')
+			})
 	}
 
 	/** 加载所有站点的基础信息集合 */
 	loadDistStationBaseInfoList() {
-		loadDistStationBaseInfoList().then((res) => {
-			this.distStationBaseInfoList = res.data.map((temp) => {
-				return new StationBaseInfoMidModel(
-					temp.pid,
-					temp.code,
-					temp.name,
-					temp.lat,
-					temp.lon,
-					temp.sort
-				)
+		return loadDistStationBaseInfoList()
+			.then((res) => {
+				if (res.status == 200) {
+					this.distStationBaseInfoList = res.data.map((temp) => {
+						return new StationBaseInfoMidModel(
+							temp.pid,
+							temp.code,
+							temp.name,
+							temp.lat,
+							temp.lon,
+							temp.sort
+						)
+					})
+				}
 			})
-		})
+			.then(() => {
+				console.log('loadDistStationBaseInfoList over')
+			})
 	}
 }
 </script>
