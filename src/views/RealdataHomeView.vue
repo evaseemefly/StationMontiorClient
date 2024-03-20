@@ -5,6 +5,7 @@
 		</div>
 		<!-- 温带预报系统底部的主要操作按钮栏 -->
 		<div class="layout-bottom"><WdSubNavMenuView></WdSubNavMenuView></div>
+		<DisplayTabsView></DisplayTabsView>
 		<!-- <WaveGridForecastDataFormView></WaveGridForecastDataFormView> -->
 		<StationInlandSurgeDataFormView
 			:startTs="issueTs"
@@ -45,6 +46,7 @@ import StationInlandSurgeDataFormView from '@/components/forms/StationInlandSurg
 import StationBreviaryListView from '@/components/table/stationBreviaryListView.vue'
 import StationSurgeDataFormView from '@/components/forms/StationSurgeDataFormView.vue'
 import RegionStatisticsCard from '@/components/cards/regionStatisticsCard.vue'
+import DisplayTabsView from '@/components/table/father/displayTabsView.vue'
 
 // 默认值
 import { DEFAULT_DATE, DEFAULT_TIMESTAMP, DEFAULT_TY_NUM } from '@/const/default'
@@ -92,6 +94,7 @@ import { DistStationSurgeListMidModel } from '@/middle_model/surge'
 		RegionStatisticsCard,
 		StationBreviaryListView,
 		RealdataMapView,
+		DisplayTabsView,
 	},
 })
 export default class RealdataHomeView extends Vue {
