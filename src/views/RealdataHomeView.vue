@@ -19,6 +19,7 @@
 			:distStationRealdataList="distStationRealdataList"
 			:distStationsAlertlevelList="distStationsAlertlevelList"
 			:distStationBaseInfoList="distStationBaseInfoList"
+			:distStationSurgeRealdataExtremumList="distStationSurgeRealdataExtremumList"
 		></StationBreviaryListView>
 		<!-- <StationExtremumListView :tyNum="tyNum"></StationExtremumListView> -->
 		<ThumbListView></ThumbListView>

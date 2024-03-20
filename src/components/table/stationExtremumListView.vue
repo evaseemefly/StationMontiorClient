@@ -20,7 +20,7 @@
 				</thead>
 				<tbody>
 					<tr
-						v-for="(stationTemp, index) in stationExtremumList"
+						v-for="(stationTemp, index) in stationSurgeMixList"
 						:key="stationTemp.id"
 						@click="commitStationExtremum(stationTemp, index)"
 						:class="index == selectedTrIndex ? 'activate' : ' '"
@@ -72,6 +72,7 @@ import SurgeValuePrgressLineView from '@/components/progress/surgeValueProgressV
 import station from '@/store/modules/station'
 import { MS_UNIT } from '@/const/unit'
 import { StationBaseInfoMidModel } from '@/middle_model/station'
+import { DistStationSurgeListMidModel } from '@/middle_model/surge'
 /** 海洋站极值列表 */
 @Component({
 	filters: {
@@ -83,11 +84,14 @@ import { StationBaseInfoMidModel } from '@/middle_model/station'
 	},
 })
 export default class StationExtremumListView extends Vue {
+	@Prop({ type: Boolean, default: false })
+	isFinished: boolean
+
 	@Prop({ type: String, default: '极值显示' })
 	title
 
 	/** 台风编号(str) */
-	@Prop({ default: DEFAULT_TY_NUM, type: String })
+	@Prop({ default: DEFAULT_TY_NUM, type: String, required: false })
 	tyNum: string
 
 	/** 海洋站数量 */
@@ -95,17 +99,19 @@ export default class StationExtremumListView extends Vue {
 
 	/** 总潮位集合 */
 	@Prop({ default: [], type: Array })
-	distStationRealdataList: {
-		station_code: string
-		surge_list: number[]
-		ts_list: number[]
-	}[]
+	distStationTotalSurgeList: DistStationSurgeListMidModel[]
+
+	/** 天文潮集合 */
+	@Prop({ type: Array, default: [] })
+	distStationAstronmictideList: DistStationSurgeListMidModel[]
 
 	/** 页面加载时的背景颜色 */
 	loadBackground = '#20262cd9'
 
-	/** 海洋站极值集合 */
-	stationExtremumList: {
+	/** 海洋站极值集合
+	 * TODO:[*] 24-03-20 注意一下 surge 是否正确
+	 */
+	stationSurgeMixList: {
 		stationCode: string
 		stationName: string
 		/** 增水 */
@@ -139,6 +145,55 @@ export default class StationExtremumListView extends Vue {
 	setExpanded(val: boolean): void {
 		this.isExpanded = val
 		this.setShowExtremumForm(val)
+	}
+
+	@Watch('isFinished')
+	onIsFinished(val: boolean): void {
+		if (val) {
+			this.loadStationExtremumList()
+		}
+	}
+
+	/** +24-03-19 加载站点极值集合(包含增水，天文潮等信息) */
+	loadStationExtremumList(): void {
+		let stationSurgeMixList: {
+			stationCode: string
+			stationName: string
+			/** 增水 */
+			surge: number
+			dt: Date
+			/** 实况 */
+			realdata: number
+			/** 天文潮 */
+			tide: number
+		}[] = []
+
+		for (let index = 0; index < this.distStationTotalSurgeList.length; index++) {
+			const element = this.distStationTotalSurgeList[index]
+			const filterAst = this.distStationAstronmictideList.filter(
+				(x) => x.stationCode == element.stationCode
+			)
+			if (filterAst.length > 0) {
+				const tempAst = filterAst[0]
+				if (element.surgeList.length === tempAst.surgeList.length) {
+					const tempSurge = element.surgeList[index]
+					const tempTide = tempAst.surgeList[index]
+					const tempName = this.stationNameDict.find((x) => {
+						return x.name == element.stationCode
+					}).chname
+					const tempMixSurge = {
+						stationCode: element.stationCode,
+						stationName: tempName,
+						surge: tempSurge - tempTide,
+						realdata: tempSurge,
+						tide: tempTide,
+						dt: new Date(element.tsList[index] * MS_UNIT),
+					}
+					stationSurgeMixList.push(tempMixSurge)
+				}
+			}
+		}
+		this.stationSurgeMixList = stationSurgeMixList
 	}
 
 	/** TODO:[-] 23-08-18
@@ -202,16 +257,16 @@ export default class StationExtremumListView extends Vue {
 			// }
 			// stationSurgeExtremumList.push(tempStationExtremum)
 		}
-		this.stationExtremumList = stationSurgeExtremumList
+		this.stationSurgeMixList = stationSurgeExtremumList
 	}
 
 	get getStationCount(): number {
-		return this.stationExtremumList.length
+		return this.stationSurgeMixList.length
 	}
 
 	get maxVal(): number {
 		return Math.max(
-			...this.stationExtremumList.map((temp) => {
+			...this.stationSurgeMixList.map((temp) => {
 				return temp.surge
 			})
 		)
@@ -242,7 +297,7 @@ export default class StationExtremumListView extends Vue {
 
 	/** 提交给父级海洋站极值列表 */
 	commitStationExtremumList(): void {
-		this.$emit('submitStationExtremumList', this.stationExtremumList)
+		this.$emit('submitStationExtremumList', this.stationSurgeMixList)
 	}
 
 	/** TODO:[*] 22-11-11 注意此方法与getIsShow  */

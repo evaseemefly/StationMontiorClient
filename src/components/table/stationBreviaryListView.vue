@@ -8,21 +8,25 @@
 	>
 		<StationExtremumListView
 			:title="增水极值"
-			:stationNameDict="stationNameDict"
-			:distStationsTotalSurgeList="distStationRealdataList"
+			:isFinished="isFinished"
+			:stationNameDict="stationNameDicts"
+			:distStationAstronmictideList="distStationAstronmictideList"
+			:distStationTotalSurgeList="distStationRealdataList"
 		></StationExtremumListView>
 		<StationAlertListView
-			:title="'总潮位极值'"
+			:title="'总潮位极值(整点级)'"
 			:isFinished="isFinished"
 			:stationNameDicts="stationNameDicts"
 			:distStationsSurgeList="distStationRealdataMaximumList"
 			:distStationsAlertlevelList="distStationsAlertlevelList"
 		></StationAlertListView>
-		<!-- <StationAlertListView
-			:title="整点极值"
-			:stationNameDict="stationNameDict"
-			:distStationsSurgeList="distStationSurgeRealdataMaximumList"
-		></StationAlertListView> -->
+		<StationAlertListView
+			:title="'总潮位极值(分钟级)'"
+			:isFinished="isFinished"
+			:stationNameDicts="stationNameDicts"
+			:distStationsSurgeList="distStationRealdataExtremumList"
+			:distStationsAlertlevelList="distStationsAlertlevelList"
+		></StationAlertListView>
 	</div>
 </template>
 <script lang="ts">
@@ -82,8 +86,18 @@ export default class StationBreviaryListView extends Vue {
 	@Prop({ type: Array, default: [] })
 	distStationBaseInfoList: StationBaseInfoMidModel[] = []
 
-	/** 不同站点的实况极值集合(单一站点只显示一个极值时间——从每个站点的整点实况集合获取) */
+	@Prop({ type: Array, default: [] })
+	distStationSurgeRealdataExtremumList: {
+		station_code: string
+		issue_ts: number
+		surge: number
+	}[] = []
+
+	/** 不同站点的实况极值集合(单一站点只显示一个极值时间——整点级) */
 	distStationRealdataMaximumList: StationMaximumSurgeMideModel[] = []
+
+	/** 不同站点的实况极值(分钟级) */
+	distStationRealdataExtremumList: StationMaximumSurgeMideModel[] = []
 
 	/** 海洋站名称中英文对照字典 */
 	stationNameDicts: { name: string; chname: string; sort: number }[] = []
@@ -93,6 +107,7 @@ export default class StationBreviaryListView extends Vue {
 		if (val) {
 			this.loadDistStationRealdataMaximumList(this.distStationRealdataList)
 			this.loadDistStationNameDicts(this.distStationBaseInfoList)
+			this.loadDistStationRealdataExtremumList(this.distStationSurgeRealdataExtremumList)
 		}
 	}
 
@@ -110,6 +125,27 @@ export default class StationBreviaryListView extends Vue {
 			var tsOfMax = elementStation.tsList[indexOfMax]
 			this.distStationRealdataMaximumList.push(
 				new StationMaximumSurgeMideModel(elementStation.stationCode, tsOfMax, max)
+			)
+		}
+	}
+
+	/** 加载不同站点的极值(分钟级) */
+	loadDistStationRealdataExtremumList(
+		val: {
+			station_code: string
+			issue_ts: number
+			surge: number
+		}[]
+	) {
+		this.distStationRealdataExtremumList = []
+		for (let index = 0; index < val.length; index++) {
+			const element = val[index]
+			this.distStationRealdataExtremumList.push(
+				new StationMaximumSurgeMideModel(
+					element.station_code,
+					element.issue_ts,
+					element.surge
+				)
 			)
 		}
 	}
