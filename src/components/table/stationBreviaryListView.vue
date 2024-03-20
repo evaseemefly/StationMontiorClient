@@ -7,7 +7,7 @@
 		element-loading-background="rgba(28, 34, 52, 0.733)"
 	>
 		<StationExtremumListView
-			:title="增水极值"
+			:title="'增水极值'"
 			:isFinished="isFinished"
 			:stationNameDict="stationNameDicts"
 			:distStationAstronmictideList="distStationAstronmictideList"
@@ -80,18 +80,18 @@ export default class StationBreviaryListView extends Vue {
 		station_code: string
 		alert_tide_list: number[]
 		alert_level_list: number[]
-	}[] = []
+	}[]
 
 	/** 不同站点的基础信息集合(经纬度、sort、code、name及其他) */
 	@Prop({ type: Array, default: [] })
-	distStationBaseInfoList: StationBaseInfoMidModel[] = []
+	distStationBaseInfoList: StationBaseInfoMidModel[]
 
 	@Prop({ type: Array, default: [] })
 	distStationSurgeRealdataExtremumList: {
 		station_code: string
 		issue_ts: number
 		surge: number
-	}[] = []
+	}[]
 
 	/** 不同站点的实况极值集合(单一站点只显示一个极值时间——整点级) */
 	distStationRealdataMaximumList: StationMaximumSurgeMideModel[] = []

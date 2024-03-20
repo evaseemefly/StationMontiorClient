@@ -121,15 +121,13 @@ export default class StationExtremumListView extends Vue {
 		realdata: number
 		/** 天文潮 */
 		tide: number
+		sort: number
 	}[] = []
-
-	@Prop({ default: [], type: Array })
-	distStationBaseInfoList: StationBaseInfoMidModel[]
 
 	/** 海洋站名称中英文对照字典
 	 * 由 distStationBaseInfoList 替代
 	 */
-	@Prop({ type: Array, required: true })
+	@Prop({ type: Array, required: true, default: [] })
 	stationNameDict: { name: string; chname: string; sort: number }[]
 
 	/** 是否加载 */
@@ -166,6 +164,7 @@ export default class StationExtremumListView extends Vue {
 			realdata: number
 			/** 天文潮 */
 			tide: number
+			sort
 		}[] = []
 
 		for (let index = 0; index < this.distStationTotalSurgeList.length; index++) {
@@ -178,86 +177,27 @@ export default class StationExtremumListView extends Vue {
 				if (element.surgeList.length === tempAst.surgeList.length) {
 					const tempSurge = element.surgeList[index]
 					const tempTide = tempAst.surgeList[index]
-					const tempName = this.stationNameDict.find((x) => {
+					const tempStationDict = this.stationNameDict.find((x) => {
 						return x.name == element.stationCode
-					}).chname
+					})
 					const tempMixSurge = {
 						stationCode: element.stationCode,
-						stationName: tempName,
+						stationName: tempStationDict.chname,
 						surge: tempSurge - tempTide,
 						realdata: tempSurge,
 						tide: tempTide,
 						dt: new Date(element.tsList[index] * MS_UNIT),
+						sort: tempStationDict.sort,
 					}
 					stationSurgeMixList.push(tempMixSurge)
 				}
 			}
 		}
+		// 进行一次sort排序
+		stationSurgeMixList = stationSurgeMixList.sort((a, b) => {
+			return a.sort - b.sort
+		})
 		this.stationSurgeMixList = stationSurgeMixList
-	}
-
-	/** TODO:[-] 23-08-18
-	 * 将 所有站点的总潮位集合 按照 station_code 提取每个站点的极值及出现时间
-	 */
-	@Watch('distStationRealdataList')
-	onDistStationRealdataList(
-		val: {
-			station_code: string
-			surge_list: number[]
-			ts_list: number[]
-		}[]
-	): void {
-		/** 海洋站增水极值集合 */
-		let stationSurgeExtremumList: {
-			stationCode: string
-			stationName: string
-			/** 增水 */
-			surge: number
-			dt: Date
-			/** 实况 */
-			realdata: number
-			/** 天文潮 */
-			tide: number
-		}[] = []
-		for (let index = 0; index < val.length; index++) {
-			const stationElement = val[index]
-			/** 极大值所在位置 */
-			let maxIndex = 0
-			let tempStationFilter = this.stationNameDict.filter((x) => {
-				return x.name == stationElement.station_code
-			})
-			let tempStationName: string =
-				tempStationFilter.length > 0 ? tempStationFilter[0].chname : NONE_STATION_NAME
-			stationElement.surge_list.reduce((accuVal, currentVal, currentIndex) => {
-				if (accuVal > currentVal) {
-					return accuVal
-				} else {
-					maxIndex = currentIndex
-					return currentVal
-				}
-			})
-
-			// const tempStationExtremum: {
-			// 	stationCode: string
-			// 	stationName: string
-			// 	/** 增水 */
-			// 	surge: number
-			// 	dt: Date
-			// 	/** 实况 */
-			// 	realdata: number
-			// 	/** 天文潮 */
-			// 	tide: number
-			// } = {
-			// 	stationCode: stationElement.station_code,
-			// 	stationName: tempStationName,
-			// 	realdata: 0,
-			// 	surge: stationElement.surge_list[maxIndex],
-			// 	tide: stationElement.tide_list[maxIndex],
-			// 	dt: new Date(stationElement.forecast_ts_list[maxIndex] * MS_UNIT),
-			// }
-			// stationSurgeExtremumList.push(tempStationExtremum)
-		}
-		this.stationSurgeMixList = stationSurgeExtremumList
 	}
 
 	get getStationCount(): number {

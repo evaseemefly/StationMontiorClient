@@ -81,12 +81,12 @@ export default class StationAlertListView extends Vue {
 	distStationsSurgeList: StationMaximumSurgeMideModel[]
 
 	/** 警戒潮位集合 */
-	@Prop({ type: Object, default: [] })
+	@Prop({ type: Array, default: [], required: true })
 	distStationsAlertlevelList: {
 		station_code: string
 		alert_tide_list: number[]
 		alert_level_list: number[]
-	}[] = []
+	}[]
 
 	/** 海洋站名称中英文对照字典 */
 	@Prop({ type: Array, required: true })
@@ -105,6 +105,7 @@ export default class StationAlertListView extends Vue {
 		dt: Date
 		code: string
 		name_en: string
+		sort: number
 		alerts: { code: string; alert: AlertTideEnum; tide: number }[]
 	}[] = []
 
@@ -173,10 +174,15 @@ export default class StationAlertListView extends Vue {
 					code: tempCode,
 					name_en: tempCode,
 					alerts: alerts,
+					sort: tempStationDict.sort,
 				}
 				stationExtremumMergeList.push(tempStationExtremumMerge)
 			})
 		}
+		// 进行一次sort排序
+		stationExtremumMergeList = stationExtremumMergeList.sort((a, b) => {
+			return a.sort - b.sort
+		})
 		this.stationExtremumMergeList = stationExtremumMergeList
 	}
 
