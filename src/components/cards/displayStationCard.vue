@@ -1,13 +1,15 @@
 <template>
 	<div id="display_station_card">
 		<div class="card-name">{{ name }}</div>
-		<div class="card-close">
+		<div class="card-close" @click="commitRemoveCode(name)">
 			<i class="fa-solid fa-minus"></i>
 		</div>
 	</div>
 </template>
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator'
+import { REMOVE_STATIONS_CODE } from '@/store/types'
+import { Mutation } from 'vuex-class'
 /** 显示tab组件(父组件) */
 @Component({})
 export default class DispalyStationCard extends Vue {
@@ -16,10 +18,16 @@ export default class DispalyStationCard extends Vue {
 	@Prop({ type: String, default: '站点' })
 	name: string
 
-	mounted() {}
-	get computedTest() {
-		return null
+	@Prop({ type: String, default: '' })
+	code: string
+
+	commitRemoveCode(val: string) {
+		this.removeCode(val)
 	}
+
+	/** 从 vuex 中删除 stationsCodes 指定 code */
+	@Mutation(REMOVE_STATIONS_CODE, { namespace: 'station' })
+	removeCode: { (val: string): void }
 }
 </script>
 <style scoped lang="less">

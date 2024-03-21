@@ -53,6 +53,7 @@ import {
 	SET_CURRENT_TY_FORECAST_DT,
 	SET_SHADE_NAV_TIME,
 	SET_STATION_CODE,
+	PUSH_STATIONS_CODE,
 } from '@/store/types'
 import { MS_UNIT } from '@/const/unit'
 import { StationMaximumSurgeMideModel } from '@/middle_model/surge'
@@ -197,11 +198,15 @@ export default class StationAlertListView extends Vue {
 		index: number
 	): void {
 		// console.log(val)
-		this.setStationCode(val.stationCode)
+		// this.setStationCode(val.stationCode)
+		this.pushStationsCodes(val.stationCode)
 		this.setTyForecastDt(val.dt)
 		this.setShadeTimebar(false)
 		this.selectedTrIndex = index
 	}
+
+	@Mutation(PUSH_STATIONS_CODE, { namespace: 'station' })
+	pushStationsCodes: { (code: string): void }
 
 	/** 设置当前选中的 海洋站code */
 	@Mutation(SET_STATION_CODE, { namespace: 'station' })

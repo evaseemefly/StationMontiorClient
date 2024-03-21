@@ -20,11 +20,11 @@
 				<!-- <div class="my-sub-title right" @click="setExpanded()">最小化</div> -->
 			</div>
 			<div class="detail-content">
-				<StationInlandSurgeChartView
+				<StationDataChart
 					:startTs="issueTs"
 					:endTs="endTs"
 					:issueTs="issueTs"
-				></StationInlandSurgeChartView>
+				></StationDataChart>
 			</div>
 		</div>
 	</div>
@@ -34,11 +34,12 @@
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator'
 import { Getter, Mutation, State, namespace } from 'vuex-class'
 
-import StationInlandSurgeChartView from '@/components/charts/StationInlandSurgeDataCharts.vue'
+import StationDataChart from '@/components/charts/StationDataChart.vue'
 import { GET_SHOW_STATION_SURGE_FORM } from '@/store/types'
 import { DistStationSurgeListMidModel } from '@/middle_model/surge'
-@Component({ components: { StationInlandSurgeChartView } })
-export default class StationInlandSurgeDataFormView extends Vue {
+/** + 24-03-21 海洋站数据显示form 包含 tabs 以及 charts 组件 */
+@Component({ components: { StationDataChart } })
+export default class StationDataFormView extends Vue {
 	/** 不同站点的天文潮集合
 	 * TODO:[*] 24-03-15 此处将数据类型修改为与distStationRealdataList一致
 	 */

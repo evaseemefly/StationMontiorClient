@@ -5,13 +5,14 @@
 		</div>
 		<!-- 温带预报系统底部的主要操作按钮栏 -->
 		<div class="layout-bottom"><WdSubNavMenuView></WdSubNavMenuView></div>
-		<DisplayTabsView></DisplayTabsView>
+		<DisplayTabsView :maxCount="5"></DisplayTabsView>
 		<!-- <WaveGridForecastDataFormView></WaveGridForecastDataFormView> -->
-		<StationInlandSurgeDataFormView
-			:startTs="issueTs"
-			:endTs="endTs"
-			:issueTs="issueTs"
-		></StationInlandSurgeDataFormView>
+		<StationDataFormView
+			:distStationAstronmictideList="distStationAstronmictideList"
+			:distStationRealdataList="distStationRealdataList"
+			:distStationsAlertlevelList="distStationsAlertlevelList"
+			:distStationBaseInfoList="distStationBaseInfoList"
+		></StationDataFormView>
 		<!-- <div><StationTideFormView></StationTideFormView></div> -->
 		<StationBreviaryListView
 			:isLoading="isLoading"
@@ -42,7 +43,7 @@ import ThumbListView from '@/components/thumbs/thumbListView.vue'
 import HeaderLogoView from '@/components/header/headerLogoView.vue'
 import WdLegendListView from '@/components/toolsBar/wdLegendListView.vue'
 import WaveGridForecastDataFormView from '@/components/forms/WaveGridForecastDataForm.vue'
-import StationInlandSurgeDataFormView from '@/components/forms/StationInlandSurgeDataFormView.vue'
+import StationDataFormView from '@/components/forms/StationDataFormView.vue'
 import StationBreviaryListView from '@/components/table/stationBreviaryListView.vue'
 import StationSurgeDataFormView from '@/components/forms/StationSurgeDataFormView.vue'
 import RegionStatisticsCard from '@/components/cards/regionStatisticsCard.vue'
@@ -89,8 +90,7 @@ import { DistStationSurgeListMidModel } from '@/middle_model/surge'
 		HeaderLogoView,
 		WdLegendListView,
 		WaveGridForecastDataFormView,
-		// StationSurgeDataFormView,
-		StationInlandSurgeDataFormView,
+		StationDataFormView,
 		RegionStatisticsCard,
 		StationBreviaryListView,
 		RealdataMapView,

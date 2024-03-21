@@ -234,6 +234,16 @@ export const SET_STATION_CODE = 'SET_STATION_CODE'
 /** 获取当前选定的海洋站 code */
 export const GET_STATION_CODE = 'GET_STATION_CODE'
 
+/** 获取当前选定的海洋站 code集合 */
+export const GET_STATIONS_CODES = 'GET_STATIONS_CODES'
+/** 修改当前选定的海洋站 code 集合(全部) */
+export const SET_STATIONS_CODES = 'SET_STATIONS_CODES'
+
+/** 向选定站点集合中push code */
+export const PUSH_STATIONS_CODE = 'PUSH_STATIONS_CODE'
+/** 从站点集合中删除 code */
+export const REMOVE_STATIONS_CODE = 'REMOVE_STATIONS_CODE'
+
 /** 设置当前PID */
 export const SET_REGION_PID = 'SET_REGION_PID'
 /** 获取当前PID */

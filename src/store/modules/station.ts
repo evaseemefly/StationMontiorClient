@@ -8,6 +8,10 @@ import {
 	GET_REGION_PID,
 	SET_STATIONS_BASEINFO_LIST,
 	GET_STATIONS_BASEINFO_LIST,
+	SET_STATIONS_CODES,
+	GET_STATIONS_CODES,
+	PUSH_STATIONS_CODE,
+	REMOVE_STATIONS_CODE,
 } from '../types'
 import { DEFAULT_STATION_CODE } from '@/const/default'
 interface IStation {
@@ -16,6 +20,8 @@ interface IStation {
 	regionPid: number
 	/** 海洋站基础信息集合 */
 	stationBaseInfoList: StationBaseInfoMidModel[]
+	/** 选中的海洋站codes */
+	stationsCodes: string[]
 }
 
 const state: IStation = {
@@ -24,6 +30,7 @@ const state: IStation = {
 	regionPid: -1,
 	/** 海洋站基础信息集合 */
 	stationBaseInfoList: [],
+	stationsCodes: [],
 }
 const getters = {
 	[GET_STATION_CODE](state: IStation): string {
@@ -37,6 +44,9 @@ const getters = {
 	},
 	[GET_STATIONS_BASEINFO_LIST](state: IStation): StationBaseInfoMidModel[] {
 		return state.stationBaseInfoList
+	},
+	[GET_STATIONS_CODES](state: IStation): string[] {
+		return state.stationsCodes
 	},
 }
 // 使用dispatch调用
@@ -54,6 +64,17 @@ const mutations = {
 	},
 	[SET_STATIONS_BASEINFO_LIST](state: IStation, val: StationBaseInfoMidModel[]): void {
 		state.stationBaseInfoList = val
+	},
+	[SET_STATIONS_CODES](state: IStation, val: string[]): void {
+		state.stationsCodes = val
+	},
+	/** 向 codes中推送 code */
+	[PUSH_STATIONS_CODE](state: IStation, val: string): void {
+		state.stationsCodes.push(val)
+	},
+	/** 从 codes 中删除 code */
+	[REMOVE_STATIONS_CODE](state: IStation, val: string): void {
+		state.stationsCodes = state.stationsCodes.filter((temp) => temp != val)
 	},
 }
 
