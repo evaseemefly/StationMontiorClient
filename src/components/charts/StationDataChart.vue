@@ -882,20 +882,6 @@ export default class StationDataChart extends Vue {
 		return this.getStationCode + '站潮位'
 	}
 
-	/** 待监听的 当前站位 lat,lon,issueTs  */
-	get pointOpts(): {
-		issueTs: number
-		lat: number
-		lon: number
-	} {
-		const { issueTs, lat, lon } = this
-		return {
-			issueTs,
-			lat,
-			lon,
-		}
-	}
-
 	@Watch('chartOpts')
 	onChartOpts(val: {
 		getStationCode: string

@@ -12,6 +12,7 @@
 			:distStationRealdataList="distStationRealdataList"
 			:distStationsAlertlevelList="distStationsAlertlevelList"
 			:distStationBaseInfoList="distStationBaseInfoList"
+			:distStationNameDicts="distStationNameDicts"
 		></StationDataFormView>
 		<!-- <div><StationTideFormView></StationTideFormView></div> -->
 		<StationBreviaryListView
@@ -21,6 +22,7 @@
 			:distStationRealdataList="distStationRealdataList"
 			:distStationsAlertlevelList="distStationsAlertlevelList"
 			:distStationBaseInfoList="distStationBaseInfoList"
+			:distStationNameDicts="distStationNameDicts"
 			:distStationSurgeRealdataExtremumList="distStationSurgeRealdataExtremumList"
 		></StationBreviaryListView>
 		<!-- <StationExtremumListView :tyNum="tyNum"></StationExtremumListView> -->
@@ -130,6 +132,9 @@ export default class RealdataHomeView extends Vue {
 	/** 所有站点实况集合 */
 	distStationRealdataList: DistStationSurgeListMidModel[] = []
 
+	/** 海洋站名称中英文对照字典 */
+	distStationNameDicts: { name: string; chname: string; sort: number }[] = []
+
 	/** 控制加载遮罩 */
 	isLoading = false
 	/** 通知子组件所有异步请求均执行结束 */
@@ -149,6 +154,7 @@ export default class RealdataHomeView extends Vue {
 			console.log('执行所有异步请求完毕')
 			this.isLoading = false
 			this.isFinished = true
+			this.loadDistStationNameDicts(this.distStationBaseInfoList)
 		})
 	}
 
@@ -170,6 +176,17 @@ export default class RealdataHomeView extends Vue {
 	/** 结束时间戳 (issueTs+ timespan) 单位 s */
 	get endTs(): number {
 		return this.issueTs + this.timespan
+	}
+
+	/** 从站点基础信息集合提取 站点code:name 字典
+	 * this.distStationBaseInfoList
+	 */
+	loadDistStationNameDicts(val: StationBaseInfoMidModel[]) {
+		let stationDicts = []
+		stationDicts = val.map((temp) => {
+			return { name: temp.stationCode, chname: temp.stationName, sort: temp.sort }
+		})
+		this.distStationNameDicts = stationDicts
 	}
 
 	/** 加载所有站点的实况极值集合

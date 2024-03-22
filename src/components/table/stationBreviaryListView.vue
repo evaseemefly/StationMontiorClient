@@ -9,21 +9,21 @@
 		<StationExtremumListView
 			:title="'增水极值'"
 			:isFinished="isFinished"
-			:stationNameDict="stationNameDicts"
+			:stationNameDict="distStationNameDicts"
 			:distStationAstronmictideList="distStationAstronmictideList"
 			:distStationTotalSurgeList="distStationRealdataList"
 		></StationExtremumListView>
 		<StationAlertListView
 			:title="'总潮位极值(整点级)'"
 			:isFinished="isFinished"
-			:stationNameDicts="stationNameDicts"
+			:stationNameDicts="distStationNameDicts"
 			:distStationsSurgeList="distStationRealdataMaximumList"
 			:distStationsAlertlevelList="distStationsAlertlevelList"
 		></StationAlertListView>
 		<StationAlertListView
 			:title="'总潮位极值(分钟级)'"
 			:isFinished="isFinished"
-			:stationNameDicts="stationNameDicts"
+			:stationNameDicts="distStationNameDicts"
 			:distStationsSurgeList="distStationRealdataExtremumList"
 			:distStationsAlertlevelList="distStationsAlertlevelList"
 		></StationAlertListView>
@@ -93,20 +93,20 @@ export default class StationBreviaryListView extends Vue {
 		surge: number
 	}[]
 
+	@Prop({ type: Array, default: [] })
+	distStationNameDicts: { name: string; chname: string; sort: number }[]
+
 	/** 不同站点的实况极值集合(单一站点只显示一个极值时间——整点级) */
 	distStationRealdataMaximumList: StationMaximumSurgeMideModel[] = []
 
 	/** 不同站点的实况极值(分钟级) */
 	distStationRealdataExtremumList: StationMaximumSurgeMideModel[] = []
 
-	/** 海洋站名称中英文对照字典 */
-	stationNameDicts: { name: string; chname: string; sort: number }[] = []
-
 	@Watch('isFinished')
 	OnIsFinished(val: boolean) {
 		if (val) {
 			this.loadDistStationRealdataMaximumList(this.distStationRealdataList)
-			this.loadDistStationNameDicts(this.distStationBaseInfoList)
+
 			this.loadDistStationRealdataExtremumList(this.distStationSurgeRealdataExtremumList)
 		}
 	}
@@ -150,20 +150,8 @@ export default class StationBreviaryListView extends Vue {
 		}
 	}
 
-	/** 从站点基础信息集合提取 站点code:name 字典
-	 * this.distStationBaseInfoList
-	 */
-	loadDistStationNameDicts(val: StationBaseInfoMidModel[]) {
-		let stationDicts = []
-		stationDicts = val.map((temp) => {
-			return { name: temp.stationCode, chname: temp.stationName, sort: temp.sort }
-		})
-		this.stationNameDicts = stationDicts
-	}
-
 	mounted() {
 		const self = this
-		self.stationNameDicts = []
 	}
 
 	/** store -> 是否显示fom t:显示 */
