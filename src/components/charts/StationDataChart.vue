@@ -44,12 +44,9 @@
 			<div class="down-section">
 				<!-- + 23-08-24 不传入 总潮位集合 totalSurgeList 改为在组件内计算生成 -->
 				<SurgeValsTableInLand
-					:startTs="startTs"
-					:endTs="endTs"
 					:tideList="tideList"
 					:forecastDtList="dtList"
-					:surgeList="offsetSurgeList"
-					:surgeTdStep="getSurgeTdStep"
+					:surgeList="surgeList"
 					:propHoverIndex="hoverDtIndex"
 					:alertLevels="alertLevels"
 					:wsList="wsList"
@@ -57,11 +54,6 @@
 					:wsTsList="windTsList"
 					:isLoading="isLoading"
 				></SurgeValsTableInLand>
-				<SubNavOffsetTimeItem
-					:offset="offsetNum"
-					:timeStep="1"
-					@updateOffset="updateOffset"
-				></SubNavOffsetTimeItem>
 			</div>
 		</div>
 	</div>
@@ -73,7 +65,12 @@ import * as echarts from 'echarts'
 import * as L from 'leaflet'
 import chroma from 'chroma-js'
 // 常量
-import { DEFAULT_ALERT_TIDE, DEFAULT_BOX_LOOP_LATLNG, DEFAULT_SURGE_VAL } from '@/const/default'
+import {
+	DEFAULT_ALERT_TIDE,
+	DEFAULT_BOX_LOOP_LATLNG,
+	DEFAULT_STATION_CODE,
+	DEFAULT_SURGE_VAL,
+} from '@/const/default'
 // 接口
 import { IHttpResponse } from '@/interface/common'
 
@@ -110,6 +107,7 @@ import { LayerTypeEnum } from '@/enum/map'
 
 import { AlertTideEnum } from '@/enum/surge'
 import { StationBaseInfoMidModel } from '@/middle_model/station'
+import { MS_UNIT } from '@/const/unit'
 
 @Component({
 	filters: {
@@ -136,23 +134,42 @@ export default class StationDataChart extends Vue {
 	/** 预报时间列表 */
 	forecastDtList: Date[] = []
 	dtList: Date[] = []
-	/** + 23-08-23 surgeList 基于 offseNum 进行的偏移 */
-	offsetSurgeList: number[] = []
 	/** 总潮位集合 : 增水 surge + 天文潮 tide */
 	totalSurgeList: number[] = []
+
+	issueTs: Date = new Date()
+
+	/** 当前站点code */
+	@Prop({ type: String, default: DEFAULT_STATION_CODE })
+	stationCode: string
+
 	/** 天文潮 */
-	tideList: number[] = []
+	@Prop({ type: Array, default: () => [] })
+	tideList: number[]
+
 	/** 增水(通过 offsetNum 进行便宜时不修改原始 surgeList) */
-	surgeList: number[] = []
+	@Prop({ type: Array, default: () => [] })
+	surgeList: number[]
 
 	/** 风速集合 */
-	wsList: number[] = []
+	@Prop({ type: Array, default: () => [], required: false })
+	wsList: number[]
 
 	/** 风向集合 */
-	wdList: number[] = []
+	@Prop({ type: Array, default: () => [], required: false })
+	wdList: number[]
+
+	/** 时间戳数组 */
+	@Prop({ type: Array, default: () => [], required: false })
+	tsList: number[]
 
 	/** 风场的时间戳集合 */
-	windTsList: number[] = []
+	@Prop({ type: Array, default: () => [], required: false })
+	windTsList: number[]
+
+	/** 数据加载完毕 */
+	@Prop({ type: Boolean, default: false, required: false })
+	isFinished
 
 	/** 预报值(天文潮)列表 */
 	forcastValList: number[] = []
@@ -167,12 +184,19 @@ export default class StationDataChart extends Vue {
 	/** 当前选中的位置 */
 	latlng: L.LatLng = DEFAULT_BOX_LOOP_LATLNG
 
+	/**TODO:[*] 24-03-26
+	 * 警戒潮位不需要需要由父组件传入
+	 * 由 this.alertLevels 提取
+	 *  */
 	alertBlue: number = DEFAULT_ALERT_TIDE
 	alertYellow: number = DEFAULT_ALERT_TIDE
 	alertOrange: number = DEFAULT_ALERT_TIDE
 	alertRed: number = DEFAULT_ALERT_TIDE
 
-	/** 警戒潮位及对应值 */
+	/** TODO:[*] 24-03-26
+	 * 需要由父组件传入
+	 * 警戒潮位及对应值 */
+	@Prop({ type: Array, default: () => [] })
 	alertLevels: { tide: number; alert: AlertTideEnum }[] = []
 
 	/** 用来绑定当前组件中需要显示的站点基础信息
@@ -211,188 +235,10 @@ export default class StationDataChart extends Vue {
 		['obs', '实况潮位'],
 	])
 
-	stationCode = 'kusm'
-
 	/** 鼠标移入 chart 中的 index */
 	hoverDtIndex = 0
 	/** 表格中的海浪观测数据 */
 	tableWaveValsList: { mwd: number; mwp: number; forecastDt: Date }[] = []
-
-	/**
-	 * + 23-03-30
-	 * 加载当前 code 的指定时间范围内的 [start,end] 的潮位数据并初始化 charts
-	 * step 1: 加载预报surge集合
-	 * step 2: * 加载天文潮位集合
-	 * step 3: * 记载四色警戒潮位
-	 */
-	async loadTargetStationSurgeDataList(
-		code: string,
-		issue: number,
-		start: number,
-		end: number
-	): Promise<void> {
-		const that = this
-		/** FIELD:读取结果的限制长度 */
-		let limitCount = 24
-		this.isLoading = true
-		// 加载指定发布时间的指定站点的72小时的整点预报集合
-		loadTargetStationSurgeForecastList(code, issue, start, end)
-			.then(
-				(
-					res: IHttpResponse<
-						{
-							station_code: string
-							surge: number
-							forecast_ts: number
-							issue_ts: number
-						}[]
-					>
-				): number[] => {
-					/** 时间集合 */
-					let dtList: Date[] = []
-					/** 与时间集合相对应的增水集合 */
-					let surgeList: number[] = []
-					limitCount = res.data.length
-					res.data.forEach((element) => {
-						const tempMoment = moment(element.forecast_ts * 1000).toDate()
-						dtList.push(tempMoment)
-						let tempSurge = null
-						if (element.surge !== DEFAULT_SURGE_VAL) {
-							tempSurge = Number(element.surge.toFixed(2))
-						}
-						surgeList.push(tempSurge)
-					})
-					that.dtList = []
-					that.dtList = dtList
-					that.yAxisMax = Math.max(...surgeList)
-					const noNanList = surgeList.filter((val) => {
-						return val != null
-					})
-					that.yAxisMin = Math.min(...noNanList)
-					return surgeList
-				}
-			)
-			.then(async (surgeList) => {
-				// 加载起止时间内的天文潮集合
-				// TODO:[*] 23-08-28 此处需要传入 issue?不需要
-				await loadInLandAstronomictideList(code, start, end).then(
-					(
-						res: IHttpResponse<
-							{
-								station_code: string
-								surge: number
-								forecast_dt: Date
-							}[]
-						>
-					) => {
-						//  "station_code": "LYG",
-						// "forecast_dt": "2023-06-28T12:00:00Z",
-						// "surge": 157.0
-						/** FIELD:天文潮集合 */
-						let tideList = []
-						res.data.forEach((element) => {
-							tideList.push(Number(element.surge.toFixed(2)))
-						})
-						// 天文潮未做limit限制
-						tideList = tideList.slice(0, limitCount)
-						/** FIELD: 总潮位集合 */
-						let sumSurgeList = []
-						// 总潮位集合: sumSurgeList = surgeList + tideList
-						for (let index = 0; index < surgeList.length; index++) {
-							if (
-								surgeList[index] !== DEFAULT_SURGE_VAL &&
-								tideList[index] !== DEFAULT_SURGE_VAL &&
-								surgeList[index] !== null &&
-								tideList[index] !== null
-							) {
-								sumSurgeList.push(
-									Number((surgeList[index] + tideList[index]).toFixed(2))
-								)
-							} else {
-								sumSurgeList.push(null)
-							}
-						}
-						const diffTideList: number[] = []
-						that.surgeList = diffTideList
-						that.offsetSurgeList = diffTideList
-						const noNanSurgeList = surgeList.filter((val) => {
-							return val != null
-						})
-						const noDefaultTideList = tideList.filter((val) => {
-							return val !== DEFAULT_SURGE_VAL
-						})
-
-						const noDefaultdiffSurgeList = diffTideList.filter((val) => {
-							return val !== DEFAULT_SURGE_VAL && val !== null
-						})
-
-						// TODO:[-] 23-07-21 统一更新当前页面的三个潮位集合
-						that.tideList = tideList
-						that.surgeList = surgeList
-						that.offsetSurgeList = surgeList
-						that.totalSurgeList = sumSurgeList
-					}
-				)
-				await loadInLandAlertLevels(code)
-					.then(
-						(
-							res: IHttpResponse<
-								{
-									station_code: string
-									tide: number
-									alert: number
-								}[]
-							>
-						) => {
-							that.alertLevels = []
-							if (res.status === 200) {
-								res.data.forEach((val) => {
-									switch (true) {
-										case val.alert === AlertTideEnum.BLUE:
-											this.alertBlue = val.tide
-											break
-										case val.alert === AlertTideEnum.YELLOW:
-											this.alertYellow = val.tide
-											break
-										case val.alert === AlertTideEnum.ORANGE:
-											this.alertOrange = val.tide
-											break
-										case val.alert === AlertTideEnum.RED:
-											this.alertRed = val.tide
-											break
-									}
-								})
-							}
-						}
-					)
-					.then(() => {
-						that.alertLevels = [
-							{ tide: that.alertBlue, alert: AlertTideEnum.BLUE },
-							{ tide: that.alertYellow, alert: AlertTideEnum.YELLOW },
-							{ tide: that.alertOrange, alert: AlertTideEnum.ORANGE },
-							{ tide: that.alertRed, alert: AlertTideEnum.RED },
-						]
-					})
-			})
-			.then(() => {
-				// TODO:[-] 23-07-25 加入了警戒潮位，将init chart 放在最后的 then 中
-				that.yAxisMax = Math.max(that.alertRed, ...that.totalSurgeList)
-				that.yAxisMin = Math.min(that.alertBlue, ...that.totalSurgeList, ...that.surgeList)
-				that.initCharts(
-					that.dtList,
-					[
-						{ fieldName: 'obs', yList: that.totalSurgeList },
-						{ fieldName: 'tide', yList: that.tideList },
-					],
-					{ fieldName: 'surge', vals: that.offsetSurgeList },
-					'潮位',
-					0
-				)
-			})
-			.finally(() => {
-				this.isLoading = false
-			})
-	}
 
 	loadStationRegionCountry(code: string): void {
 		loadStaionRegionCountry(code).then(
@@ -414,25 +260,6 @@ export default class StationDataChart extends Vue {
 				this.lon = this.stationBaseInfo.lon
 			}
 		)
-	}
-
-	getLayerType(layerType: LayerTypeEnum): LayerTypeEnum {
-		let all_layer_type = null
-		switch (layerType) {
-			case LayerTypeEnum.RASTER_LAYER_WVE:
-				all_layer_type = LayerTypeEnum.RASTER_LAYER_ALL_SCALAR
-				break
-			case LayerTypeEnum.RASTER_LAYER_SHWW:
-				all_layer_type = LayerTypeEnum.RASTER_LAYER_ALL_SCALAR
-				break
-			case LayerTypeEnum.RASTER_LAYER_MWP:
-				all_layer_type = LayerTypeEnum.RASTER_LAYER_ALL_SCALAR
-				break
-			default:
-				all_layer_type = LayerTypeEnum.UN_LAYER
-				break
-		}
-		return all_layer_type
 	}
 
 	/** 初始化并加载 echarts
@@ -882,43 +709,62 @@ export default class StationDataChart extends Vue {
 		return this.getStationCode + '站潮位'
 	}
 
+	/** chart监听的变量(若其一发生改变则初始化chart) */
+	get chartOpts(): { isFinished: boolean; stationCode: string } {
+		const { isFinished, stationCode } = this
+		return { isFinished, stationCode }
+	}
+
+	/** 监听是否完成加载的操作,
+	 * 加入根据各类list为 yAxisMax 赋值的步骤
+	 */
 	@Watch('chartOpts')
-	onChartOpts(val: {
-		getStationCode: string
-		startTs: number
-		endTs: number
-		issueTs: number
-	}): void {
-		this.loadTargetStationSurgeDataList(val.getStationCode, val.issueTs, val.startTs, val.endTs)
-		this.loadStationRegionCountry(val.getStationCode)
-	}
-
-	/** 监听 issueTs | lat | lon 发生变化时加载对应位置的风场时序数据 */
-	@Watch('pointOpts')
-	onPointOpts(val: { issueTs: number; lat: number; lon: number }): void {
-		loadVectorForecastListByPoint(val.issueTs, val.lat, val.lon).then(
-			(res: IHttpResponse<{ forecast_ts: number; wd: number; ws: number }[]>) => {
-				this.wsList = res.data.map((temp) => {
-					return temp.ws
-				})
-				this.wdList = res.data.map((temp) => {
-					return temp.wd
-				})
-				this.windTsList = res.data.map((temp) => {
-					return temp.forecast_ts
-				})
+	onChartOpts(val: { isFinished: boolean; stationCode: string }): void {
+		// this.loadStationRegionCountry(val.stationCode)
+		if (val.isFinished) {
+			//step1: 为总潮位赋值
+			this.totalSurgeList = []
+			this.spliceAlerts2Instance(this.alertLevels)
+			for (let index = 0; index < this.tideList.length; index++) {
+				const element = this.tideList[index] + this.surgeList[index]
+				this.totalSurgeList.push(element)
 			}
-		)
+			let dtList: Date[] = []
+			dtList = this.tsList.map((ts) => {
+				return new Date(ts * MS_UNIT)
+			})
+			this.dtList = dtList
+			this.yAxisMax = Math.max(...this.surgeList, ...this.tideList, ...this.totalSurgeList)
+			this.yAxisMin = Math.min(...this.surgeList, ...this.tideList, ...this.totalSurgeList)
+			this.initCharts(
+				dtList,
+				[
+					{ fieldName: 'surge', yList: this.totalSurgeList },
+					{ fieldName: 'tide', yList: this.tideList },
+				],
+				{ fieldName: 'difftide', vals: this.surgeList },
+				'站点实况',
+				0
+			)
+		}
 	}
 
-	/** TODO:[-] 23-07-19 终止时间 */
-	get endDt(): Date {
-		return this.getForecastDt
-	}
-
-	get startDt(): Date {
-		const start = moment(this.getForecastDt).add(-this.getTimespan, 's')
-		return start.toDate()
+	/** 将传入的 alerts 按照警戒潮位登记 赋值给 alertBlue ....  */
+	spliceAlerts2Instance(alerts: { tide: number; alert: AlertTideEnum }[]): void {
+		alerts.map((alert) => {
+			if (alert.alert == AlertTideEnum.BLUE) {
+				this.alertBlue = alert.tide
+			}
+			if (alert.alert == AlertTideEnum.YELLOW) {
+				this.alertYellow = alert.tide
+			}
+			if (alert.alert == AlertTideEnum.ORANGE) {
+				this.alertOrange = alert.tide
+			}
+			if (alert.alert == AlertTideEnum.RED) {
+				this.alertRed = alert.tide
+			}
+		})
 	}
 }
 </script>

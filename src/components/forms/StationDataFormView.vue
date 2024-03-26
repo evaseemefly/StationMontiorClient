@@ -21,9 +21,12 @@
 			</div>
 			<div class="detail-content">
 				<StationDataChart
-					:startTs="issueTs"
-					:endTs="endTs"
-					:issueTs="issueTs"
+					:tideList="tideList"
+					:surgeList="surgeList"
+					:tsList="tsList"
+					:isFinished="isChildFinished"
+					:stationCode="selectedCode"
+					:alertLevels="alertlevelList"
 				></StationDataChart>
 			</div>
 		</div>
@@ -38,18 +41,27 @@ import StationDataChart from '@/components/charts/StationDataChart.vue'
 import { GET_SHOW_STATION_SURGE_FORM, GET_STATIONS_CODES } from '@/store/types'
 import { DistStationSurgeListMidModel } from '@/middle_model/surge'
 import { DEFAULT_STATION_CODE } from '@/const/default'
+import { AlertTideEnum } from '@/enum/surge'
 /** + 24-03-21 海洋站数据显示form 包含 tabs 以及 charts 组件 */
 @Component({ components: { StationDataChart } })
 export default class StationDataFormView extends Vue {
 	/** 当前选中的站点 code */
 	selectedCode: string = DEFAULT_STATION_CODE
 
+	/** 是否加载完毕 */
+	@Prop({ type: Boolean, default: false })
+	isFinished: boolean
+
+	isChildFinished = false
+
 	/** 标题数组 */
 	subTitles: { title: string; code: string }[] = []
 
 	/** 当前 selectedCode 对应的数据集合 */
 	stationMergeDataList: {
+		/** 实况(总潮位) */
 		realdataList: DistStationSurgeListMidModel
+		/** 天文潮 */
 		astronmictideList: DistStationSurgeListMidModel
 		alertlevelList: {
 			station_code: string
@@ -81,6 +93,20 @@ export default class StationDataFormView extends Vue {
 
 	@Getter(GET_SHOW_STATION_SURGE_FORM, { namespace: 'station' }) getIsShow: boolean
 
+	/** 实况数组 */
+	realdataList: number[] = []
+	/** 天文潮数组 */
+	tideList: number[] = []
+	/** 增水数组 */
+	surgeList: number[] = []
+	/** 对应时间戳数组 */
+	tsList: number[] = []
+	/** 当前code对应的警戒潮位集合 */
+	alertlevelList: {
+		tide: number
+		alert: AlertTideEnum
+	}[] = []
+
 	/** 设置当前选中的站点编号 */
 	commitCode(code: string): void {
 		this.selectedCode = code
@@ -107,6 +133,9 @@ export default class StationDataFormView extends Vue {
 	 */
 	@Watch('selectedCode')
 	onSelectedCode(code: string): void {
+		this.isChildFinished = false
+		this.clearAlertLevelList()
+		// step1: 根据 code 过滤 警戒潮位，实况结果，天文潮结果
 		const tempFilterAlertRes = this.distStationsAlertlevelList.filter(
 			(temp) => temp.station_code == code
 		)
@@ -116,13 +145,34 @@ export default class StationDataFormView extends Vue {
 		const tempFilterAstronmictideRes = this.distStationAstronmictideList.filter(
 			(temp) => temp.stationCode == code
 		)
-		// const temp = tempFilterRealdataRes.length > 0 ? tempFilterRealdataRes[0] : null
-		this.stationMergeDataList = {
-			realdataList: tempFilterRealdataRes.length > 0 ? tempFilterRealdataRes[0] : null,
-			astronmictideList:
-				tempFilterAstronmictideRes.length > 0 ? tempFilterAstronmictideRes[0] : null,
-			alertlevelList: tempFilterAlertRes.length > 0 ? tempFilterAlertRes[0] : null,
+
+		// step2: 为天文潮与实况赋值
+		this.realdataList =
+			tempFilterRealdataRes.length > 0 ? tempFilterRealdataRes[0].surgeList : []
+		this.tideList =
+			tempFilterAstronmictideRes.length > 0 ? tempFilterAstronmictideRes[0].surgeList : []
+		this.tsList = tempFilterAstronmictideRes[0].tsList.map((ts) => {
+			return ts
+		})
+		this.surgeList = this.tideList.map((ele, index) => {
+			return this.realdataList[index] - ele
+		})
+
+		// step 3: 获取指定站点对应的警戒潮位
+		if (tempFilterAlertRes.length > 0) {
+			const filterAlers = tempFilterAlertRes[0]
+			for (let index = 0; index < filterAlers.alert_level_list.length; index++) {
+				const level = filterAlers.alert_level_list[index]
+				const tide = filterAlers.alert_tide_list[index]
+				this.alertlevelList.push({ tide: tide, alert: level })
+			}
 		}
+		this.isChildFinished = true
+	}
+
+	/** 清空 this.alertlevellist */
+	clearAlertLevelList(): void {
+		this.alertlevelList = []
 	}
 }
 </script>

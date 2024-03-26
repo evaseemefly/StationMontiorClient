@@ -8,6 +8,7 @@
 		<DisplayTabsView :maxCount="5"></DisplayTabsView>
 		<!-- <WaveGridForecastDataFormView></WaveGridForecastDataFormView> -->
 		<StationDataFormView
+			:isFinished="isFinished"
 			:distStationAstronmictideList="distStationAstronmictideList"
 			:distStationRealdataList="distStationRealdataList"
 			:distStationsAlertlevelList="distStationsAlertlevelList"
