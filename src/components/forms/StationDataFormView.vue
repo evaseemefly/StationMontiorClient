@@ -6,17 +6,22 @@
 	<div v-draggable id="station_surge_form" v-if="getIsShow" class="right-station-surge-form">
 		<div class="my-detail-form">
 			<div class="sub-titles">
-				<div
-					:class="[
-						index == subTitleIndex ? 'actived my-sub-title' : 'unactived my-sub-title',
-						item.disabled ? 'disabled' : '',
-					]"
-					:key="index"
-					@click="commitCode(item.code)"
-					v-for="(item, index) in subTitles"
-				>
-					{{ item.title }}
+				<div class="title-border">
+					<div
+						:class="[
+							index == subTitleIndex
+								? 'actived my-sub-title'
+								: 'unactived my-sub-title',
+							item.disabled ? 'disabled' : '',
+						]"
+						:key="index"
+						@click="commitCode(item.code)"
+						v-for="(item, index) in subTitles"
+					>
+						{{ item.title }}
+					</div>
 				</div>
+
 				<!-- <div class="my-sub-title right" @click="setExpanded()">最小化</div> -->
 			</div>
 			<div class="detail-content">
@@ -56,6 +61,8 @@ export default class StationDataFormView extends Vue {
 
 	/** 标题数组 */
 	subTitles: { title: string; code: string }[] = []
+
+	subTitleIndex = -1
 
 	/** 当前 selectedCode 对应的数据集合 */
 	stationMergeDataList: {
@@ -110,6 +117,13 @@ export default class StationDataFormView extends Vue {
 	/** 设置当前选中的站点编号 */
 	commitCode(code: string): void {
 		this.selectedCode = code
+		// const filterSubTitle=this.subTitles.filter(t => t.code===code)
+		for (let index = 0; index < this.subTitles.length; index++) {
+			const element = this.subTitles[index]
+			if (element.code === code) {
+				this.subTitleIndex = index
+			}
+		}
 	}
 
 	@Getter(GET_STATIONS_CODES, { namespace: 'station' }) getCodes: string[]
@@ -193,5 +207,14 @@ export default class StationDataFormView extends Vue {
 }
 .detail-content {
 	@form-base-background();
+}
+// TODO:[*] 24-03-26 新加入的tabs样式
+.sub-titles {
+	.title-border {
+		display: flex;
+		border-radius: 2px;
+		box-shadow: 0 0 10px 0px black;
+		@form-base-background();
+	}
 }
 </style>
