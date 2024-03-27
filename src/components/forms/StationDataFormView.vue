@@ -21,7 +21,9 @@
 						{{ item.title }}
 					</div>
 				</div>
-
+				<div class="thumb-btn" @click="setExpanded(false)">
+					<i class="fa-solid fa-minus"></i>
+				</div>
 				<!-- <div class="my-sub-title right" @click="setExpanded()">最小化</div> -->
 			</div>
 			<div class="detail-content">
@@ -43,7 +45,11 @@ import { Component, Prop, Vue, Watch } from 'vue-property-decorator'
 import { Getter, Mutation, State, namespace } from 'vuex-class'
 
 import StationDataChart from '@/components/charts/StationDataChart.vue'
-import { GET_SHOW_STATION_SURGE_FORM, GET_STATIONS_CODES } from '@/store/types'
+import {
+	GET_SHOW_STATION_SURGE_FORM,
+	GET_STATIONS_CODES,
+	SET_SHOW_STATION_SURGE_FORM,
+} from '@/store/types'
 import { DistStationSurgeListMidModel } from '@/middle_model/surge'
 import { DEFAULT_STATION_CODE } from '@/const/default'
 import { AlertTideEnum } from '@/enum/surge'
@@ -99,6 +105,10 @@ export default class StationDataFormView extends Vue {
 	distStationNameDicts: { name: string; chname: string; sort: number }[]
 
 	@Getter(GET_SHOW_STATION_SURGE_FORM, { namespace: 'station' }) getIsShow: boolean
+
+	@Mutation(SET_SHOW_STATION_SURGE_FORM, { namespace: 'station' }) setShowStationForm: {
+		(val: boolean): void
+	}
 
 	/** 实况数组 */
 	realdataList: number[] = []
@@ -184,6 +194,10 @@ export default class StationDataFormView extends Vue {
 		this.isChildFinished = true
 	}
 
+	setExpanded(val: boolean) {
+		this.setShowStationForm(val)
+	}
+
 	/** 清空 this.alertlevellist */
 	clearAlertLevelList(): void {
 		this.alertlevelList = []
@@ -215,6 +229,10 @@ export default class StationDataFormView extends Vue {
 		border-radius: 2px;
 		box-shadow: 0 0 10px 0px black;
 		@form-base-background();
+	}
+	.thumb-btn {
+		@form-header-expand();
+		top: 15px;
 	}
 }
 </style>

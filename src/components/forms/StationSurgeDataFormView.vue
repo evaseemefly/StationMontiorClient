@@ -19,6 +19,7 @@
 				</div>
 				<!-- <div class="my-sub-title right" @click="setExpanded()">最小化</div> -->
 			</div>
+
 			<div class="detail-content">
 				<StationSurgeChartView></StationSurgeChartView>
 			</div>
@@ -48,6 +49,7 @@ export default class StationSurgeDataFormView extends Vue {
 // + 21-12-06 加入重写的 emelemtnui 样式
 @import '../../styles/my-elementui/common';
 @import '../../styles/base-form.less';
+@import '../../styles/base-form.less';
 .test {
 	background: rgb(252, 182, 31);
 	color: rgb(235, 232, 70);
@@ -60,5 +62,8 @@ export default class StationSurgeDataFormView extends Vue {
 }
 .detail-content {
 	@form-base-background();
+}
+.thumb-btn {
+	@form-header-expand();
 }
 </style>
