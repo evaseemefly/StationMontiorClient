@@ -93,7 +93,7 @@ export default class StationDataFormView extends Vue {
 	distStationRealdataList: DistStationSurgeListMidModel[]
 
 	/** + 24-03-14 所有站点的警戒潮位集合 */
-	@Prop({ type: Array, default: [] })
+	@Prop({ type: Array, default: () => [] })
 	distStationsAlertlevelList: {
 		station_code: string
 		alert_tide_list: number[]

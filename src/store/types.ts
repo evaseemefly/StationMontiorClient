@@ -337,3 +337,13 @@ export const SET_STATIONS_BASEINFO_LIST = 'SET_STATIONS_BASEINFO_LIST'
 	lon: number}
  */
 export const GET_STATIONS_BASEINFO_LIST = 'GET_STATIONS_BASEINFO_LIST'
+
+/** 获取起始时间 */
+export const GET_START_DT = 'GET_START_DT'
+/** 设置起始时间 */
+export const SET_START_DT = 'SET_START_DT'
+
+/** 获取起始时间 */
+export const GET_END_DT = 'GET_END_DT'
+/** 设置起始时间 */
+export const SET_END_DT = 'SET_END_DT'

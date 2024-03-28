@@ -61,6 +61,8 @@ import {
 	SET_WAVE_PRODUCT_ISSUE_TIMESTAMP,
 	GET_ISSUE_TS,
 	GET_TIMESPAN,
+	GET_END_DT,
+	GET_START_DT,
 } from '@/store/types'
 import { LayerTypeEnum } from '@/enum/map'
 // interface
@@ -143,7 +145,8 @@ export default class RealdataHomeView extends Vue {
 
 	/** 一次性加载所有异步请求 */
 	async initLoad() {
-		this.isLoading = true
+		this.isLoading = false
+		this.isFinished = false
 		// 一次性加载所有所需异步请求
 		return Promise.all([
 			this.loadDistStationRealdataList(this.issueTs, this.endTs),
@@ -153,7 +156,7 @@ export default class RealdataHomeView extends Vue {
 			this.loadDistStationRealdataExtremumList(this.issueTs, this.endTs),
 		]).then(() => {
 			console.log('执行所有异步请求完毕')
-			this.isLoading = false
+			this.isLoading = true
 			this.isFinished = true
 			this.loadDistStationNameDicts(this.distStationBaseInfoList)
 		})
@@ -168,6 +171,7 @@ export default class RealdataHomeView extends Vue {
 	/** 当前的发布时间 单位 s */
 	// @Getter(GET_ISSUE_TS, { namespace: 'common' })
 	issueTs = 1708344000
+	endTs = 0
 
 	//TODO:[*] 24-03-14 测试时暂时替换为固定值
 	/** 起止时间间隔 单位s  */
@@ -175,9 +179,9 @@ export default class RealdataHomeView extends Vue {
 	timespan = 82800
 
 	/** 结束时间戳 (issueTs+ timespan) 单位 s */
-	get endTs(): number {
-		return this.issueTs + this.timespan
-	}
+	// get endTs(): number {
+	// 	return this.issueTs + this.timespan
+	// }
 
 	/** 从站点基础信息集合提取 站点code:name 字典
 	 * this.distStationBaseInfoList
@@ -196,7 +200,7 @@ export default class RealdataHomeView extends Vue {
 	 */
 	loadDistStationRealdataMaximumList(startTs: number, endTs: number) {
 		// this.isLoading = true
-		loadAllStationRealdataMaximumList(startTs, endTs)
+		return loadAllStationRealdataMaximumList(startTs, endTs)
 			.then((res) => {
 				if (res.status == 200) {
 					// TODO:[-] 23-08-28 由于distStationsTotalSurgeList需要传入子组件中，排序放在外侧执行
@@ -211,8 +215,11 @@ export default class RealdataHomeView extends Vue {
 			})
 	}
 
+	/** 加载所有站点的实况极值(分钟级)
+	 * 24-03-28 bug:之前未作为 Promise<void> 出现了隐藏的bug
+	 */
 	loadDistStationRealdataExtremumList(startTs: number, endTs: number) {
-		loadDistStationRealdataExtremumList(startTs, endTs).then((res) => {
+		return loadDistStationRealdataExtremumList(startTs, endTs).then((res) => {
 			if (res.status == 200) {
 				this.distStationSurgeRealdataExtremumList = res.data
 			}
@@ -293,6 +300,26 @@ export default class RealdataHomeView extends Vue {
 			.then(() => {
 				console.log('loadDistStationBaseInfoList over')
 			})
+	}
+
+	@Getter(GET_END_DT, { namespace: 'common' })
+	getEndDt: Date
+
+	@Getter(GET_START_DT, { namespace: 'common' })
+	getStartDt: Date
+
+	get DtOpts(): { getStartDt: Date; getEndDt: Date } {
+		const { getStartDt, getEndDt } = this
+		return { getStartDt, getEndDt }
+	}
+
+	@Watch('DtOpts')
+	onDtOp(val: { getStartDt: Date; getEndDt: Date }) {
+		this.issueTs = moment(val.getStartDt).valueOf() / MS_UNIT
+		this.endTs = moment(val.getEndDt).valueOf() / MS_UNIT
+		// this.issueTs = val.getStartDt.getTime()
+		// this.endTs = val.getEndDt.getTime()
+		this.initLoad()
 	}
 }
 </script>

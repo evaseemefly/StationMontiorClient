@@ -41,6 +41,10 @@ import {
 	GET_NOW,
 	SET_ISSUE_TS,
 	GET_ISSUE_TS,
+	GET_START_DT,
+	GET_END_DT,
+	SET_START_DT,
+	SET_END_DT,
 } from '../types'
 
 import { IScale, DEFAULT_COLOR_SCALE } from '@/const/colorBar'
@@ -95,6 +99,10 @@ interface Common {
 	now: Date
 	/** 发布时间戳 */
 	issueTs: number
+	/** 起始时间 */
+	startDT: Date
+	/** 结束时间 */
+	endDt: Date
 }
 
 const state: Common = {
@@ -120,6 +128,10 @@ const state: Common = {
 	// now: new Date(2023, 3, 2, 23, 0),
 	now: new Date(),
 	issueTs: DEFAULT_TIMESTAMP,
+	/** 起始时间 */
+	startDT: DEFAULT_DATE,
+	/** 结束时间 */
+	endDt: DEFAULT_DATE,
 }
 const getters = {
 	[GET_SCALE_RANGE](state: Common): number[] {
@@ -178,6 +190,12 @@ const getters = {
 	},
 	[GET_RASTER_COLOR_SCALE_RANGE](state: Common): IScale {
 		return state.rasterScaleRange
+	},
+	[GET_START_DT](state: Common): Date {
+		return state.startDT
+	},
+	[GET_END_DT](state: Common): Date {
+		return state.endDt
 	},
 }
 // 使用dispatch调用
@@ -244,6 +262,12 @@ const mutations = {
 	},
 	[SET_RASTER_COLOR_SCALE_RANGE](state: Common, val: IScale): void {
 		state.rasterScaleRange = val
+	},
+	[SET_START_DT](state: Common, val: Date): void {
+		state.startDT = val
+	},
+	[SET_END_DT](state: Common, val: Date): void {
+		state.endDt = val
 	},
 }
 

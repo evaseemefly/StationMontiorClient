@@ -3,11 +3,11 @@
 		v-draggable
 		id="station_list_main_layout"
 		v-show="getIsShow"
-		v-loading="isLoading"
 		element-loading-background="rgba(28, 34, 52, 0.733)"
 	>
 		<StationExtremumListView
 			:title="'增水极值'"
+			:isLoading="isLoading"
 			:isFinished="isFinished"
 			:stationNameDict="distStationNameDicts"
 			:distStationAstronmictideList="distStationAstronmictideList"
@@ -16,6 +16,7 @@
 		<StationAlertListView
 			:title="'总潮位极值(整点级)'"
 			:isFinished="isFinished"
+			:isLoading="isLoading"
 			:stationNameDicts="distStationNameDicts"
 			:distStationsSurgeList="distStationRealdataMaximumList"
 			:distStationsAlertlevelList="distStationsAlertlevelList"
@@ -23,6 +24,7 @@
 		<StationAlertListView
 			:title="'总潮位极值(分钟级)'"
 			:isFinished="isFinished"
+			:isLoading="isLoading"
 			:stationNameDicts="distStationNameDicts"
 			:distStationsSurgeList="distStationRealdataExtremumList"
 			:distStationsAlertlevelList="distStationsAlertlevelList"

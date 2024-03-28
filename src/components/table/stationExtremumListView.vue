@@ -1,5 +1,5 @@
 <template>
-	<div id="station_list" v-loading="isLoading" element-loading-background="loadBackground">
+	<div id="station_list" v-loading="!isLoading" element-loading-background="loadBackground">
 		<div class="form-header">
 			<h4>站点数量:</h4>
 			<!-- <div class="primary-title"></div> -->
@@ -130,8 +130,9 @@ export default class StationExtremumListView extends Vue {
 	@Prop({ type: Array, required: true, default: [] })
 	stationNameDict: { name: string; chname: string; sort: number }[]
 
-	/** 是否加载 */
-	isLoading = false
+	/** 控制加载遮罩 */
+	@Prop({ type: Boolean, default: false })
+	isLoading: boolean
 
 	/** 当前选中的行序号 */
 	selectedTrIndex = -1

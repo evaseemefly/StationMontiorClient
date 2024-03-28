@@ -236,6 +236,10 @@ export default class RealdataMapView extends Vue {
 		render: L.canvas(),
 	}
 
+	/** + 24-03-28 由 RealdataHomeView 父组件 => 站点基础信息集合，在地图中进行加载 */
+	@Prop({ type: Array, default: () => [] })
+	stationInfoList: StationBaseInfoMidModel[] = []
+
 	isSelectLoop = false
 	/** 当前窗口正在加载 */
 	loading = false

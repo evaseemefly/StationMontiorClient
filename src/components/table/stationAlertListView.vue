@@ -1,5 +1,5 @@
 <template>
-	<div id="station_alert_list" v-loading="isLoading" element-loading-background="loadBackground">
+	<div id="station_alert_list" v-loading="!isLoading" element-loading-background="loadBackground">
 		<div class="form-header">
 			<h4>{{ title }}</h4>
 			<!-- <div class="primary-title"></div> -->
@@ -110,7 +110,9 @@ export default class StationAlertListView extends Vue {
 		alerts: { code: string; alert: AlertTideEnum; tide: number }[]
 	}[] = []
 
-	isLoading = false
+	/** 控制加载遮罩 */
+	@Prop({ type: Boolean, default: false })
+	isLoading: boolean
 
 	/** 当前选中的行序号 */
 	selectedTrIndex = -1
