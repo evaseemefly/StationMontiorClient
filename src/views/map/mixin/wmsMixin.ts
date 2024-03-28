@@ -48,6 +48,6 @@ class WMSMixin extends Vue {
 		'https://map.geoq.cn/arcgis/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}'
 	// leaflet 右下角的文字显示
 	attribution =
-		'powered by Ocean Flow © 2023 authors: <a href="https://github.com/evaseemefly">evaseemefly</a> | v2.0:23-11-20 单独提取站点服务为微服务架构,修复了页面加载逻辑 | nmefc '
+		'powered by Ocean Flow © 2023 authors: <a href="https://github.com/evaseemefly">evaseemefly</a> | v1.0:24-03-25 beta版本 完成了加载站点潮位的主要功能 | nmefc '
 }
 export { WMSMixin }

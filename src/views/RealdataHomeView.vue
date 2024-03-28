@@ -4,7 +4,7 @@
 			<div class="layout-right"><RealdataMapView></RealdataMapView></div>
 		</div>
 		<!-- 温带预报系统底部的主要操作按钮栏 -->
-		<div class="layout-bottom"><WdSubNavMenuView></WdSubNavMenuView></div>
+		<div class="layout-bottom"><RealdataSubNavMenuView></RealdataSubNavMenuView></div>
 		<DisplayTabsView :maxCount="5"></DisplayTabsView>
 		<!-- <WaveGridForecastDataFormView></WaveGridForecastDataFormView> -->
 		<StationDataFormView
@@ -38,7 +38,7 @@ import { Component, Vue, Watch } from 'vue-property-decorator'
 import { Getter, Mutation, State, namespace } from 'vuex-class'
 
 import MainNavMenuView from '@/components/nav/MainNavMenuView.vue'
-import WdSubNavMenuView from '@/components/nav/WdSubNavMenuView.vue'
+import RealdataSubNavMenuView from '@/components/nav/RealdataSubNavMenuView.vue'
 // import MainMapView from '@/views/map/MapView.vue'
 import ForecastMapView from '@/views/map/ForecastMapView.vue'
 import RealdataMapView from '@/views/map/RealdataMapView.vue'
@@ -86,7 +86,7 @@ import { DistStationSurgeListMidModel } from '@/middle_model/surge'
 @Component({
 	components: {
 		MainNavMenuView,
-		WdSubNavMenuView,
+		RealdataSubNavMenuView,
 		// MainMapView,
 		ForecastMapView,
 		ThumbListView,
