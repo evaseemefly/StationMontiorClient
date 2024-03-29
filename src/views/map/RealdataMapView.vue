@@ -1,5 +1,9 @@
 <template>
-	<div id="map_content" v-loading="loading" element-loading-background="rgba(28, 34, 52, 0.733)">
+	<div
+		id="map_content"
+		v-loading="!isLoading"
+		element-loading-background="rgba(28, 34, 52, 0.733)"
+	>
 		<l-map
 			ref="basemap"
 			:zoom="zoom"
@@ -188,10 +192,11 @@ import { StationBaseInfoMidModel } from '@/middle_model/station'
 import { IWdSurgeLayerOptions } from './types/types'
 import { IScale } from '@/const/colorBar'
 import { getIntegerList } from '@/util/math'
+import { DistStationSurgeListMidModel } from '@/middle_model/surge'
 
 /**
- * - 23-03-27 继承之前海浪可视化系统的 cli
- * - 23-03-27 逐步剔除之前海浪可视化的部分代码
+ * 实况 map view
+ * 实况的站点基础集合由父组件传入
  *
  */
 @Component({
@@ -240,7 +245,19 @@ export default class RealdataMapView extends Vue {
 	@Prop({ type: Array, default: () => [] })
 	stationInfoList: StationBaseInfoMidModel[] = []
 
+	/** + 24-03-29 由 RealdataHomeView 父组件 => 站点实况集合，在地图中进行加载 */
+	@Prop({ type: Array, default: () => [] })
+	distStationRealdataList: DistStationSurgeListMidModel[] = []
+
+	@Prop({ type: Boolean, default: false })
+	isFinished: boolean
+
+	/** 控制加载遮罩 */
+	@Prop({ type: Boolean, default: false })
+	isLoading: boolean
+
 	isSelectLoop = false
+
 	/** 当前窗口正在加载 */
 	loading = false
 	/** 当前点击的位置 */
@@ -410,6 +427,60 @@ export default class RealdataMapView extends Vue {
 				.finally(() => {
 					loadInstance.close()
 				})
+		}
+	}
+
+	/** TODO:[*] 24-03-29 将不同站点的总潮位添加至map */
+	addDistStationTotalSurge2Map() {
+		const mymap: L.Map = this.$refs.basemap['mapObject']
+		const that = this
+		let tempStationList: IStationInfo[] = []
+		// step1: 将 distStationRealdataList 与 stationInfoList 合并生成 surgeStationList
+		for (let index = 0; index < this.distStationRealdataList.length; index++) {
+			const element = this.distStationRealdataList[index]
+			const filterStationBaseInfo = this.stationInfoList.filter((temp) => {
+				return temp.stationCode == element.stationCode
+			})
+			const tempStation = filterStationBaseInfo.length > 0 ? filterStationBaseInfo[0] : null
+			/** 当前站点surge极值 */
+			const surgeMax = Math.max(...element.surgeList)
+			const surgeMaxIndex = element.surgeList.findIndex((temp) => {
+				return temp == surgeMax
+			})
+			/** 当前站点surge极值对应的时间戳 */
+			const surgeMaxTs = element.tsList[surgeMaxIndex]
+			const tempStationSurge = {
+				station_code: tempStation !== null ? tempStation.stationCode : DEFAULT_STATION_CODE,
+				name: tempStation !== null ? tempStation.stationName : DEFAULT_STATION_NAME,
+				gmt_realtime: new Date(surgeMaxTs), // 注意此处为str->date
+				lat: tempStation !== null ? tempStation.lat : DEFAULT_BOX_LOOP_LATLNG[0],
+				lon: tempStation !== null ? tempStation.lon : DEFAULT_BOX_LOOP_LATLNG[1],
+				surge: surgeMax,
+			}
+
+			tempStationList.push(tempStationSurge)
+			this.surgeStationList = tempStationList
+		}
+		that.markersIdList = addStationIcon2Map(
+			mymap,
+			this.surgeStationList,
+			10,
+			[{ name: '123', chname: '' }],
+			(msg: { code: string; name: string }) => {
+				console.log(`当前点击了code:${msg.code},name:${msg.name}`)
+				that.loadStationAndShow(msg.code)
+			},
+			IconTypeEnum.FIXED_STATION_SURGE_ICON,
+			StationIconShowTypeEnum.SHOW_STATION_STATUS,
+			that.now
+		)
+		that.zoom2Country()
+	}
+
+	@Watch('isFinished')
+	onIsFinished(val: boolean) {
+		if (val) {
+			this.addDistStationTotalSurge2Map()
 		}
 	}
 

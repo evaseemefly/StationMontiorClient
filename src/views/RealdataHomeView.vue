@@ -1,7 +1,14 @@
 <template>
 	<div class="home">
 		<div class="layout-top">
-			<div class="layout-right"><RealdataMapView></RealdataMapView></div>
+			<div class="layout-right">
+				<RealdataMapView
+					:isLoading="isLoading"
+					:isFinished="isFinished"
+					:stationInfoList="distStationBaseInfoList"
+					:distStationRealdataList="distStationRealdataList"
+				></RealdataMapView>
+			</div>
 		</div>
 		<!-- 温带预报系统底部的主要操作按钮栏 -->
 		<div class="layout-bottom"><RealdataSubNavMenuView></RealdataSubNavMenuView></div>
