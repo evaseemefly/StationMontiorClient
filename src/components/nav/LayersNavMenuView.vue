@@ -25,7 +25,7 @@ import { Component, Prop, Vue, Watch } from 'vue-property-decorator'
 import { LayerTypeEnum } from '@/enum/map'
 import { Layer } from 'leaflet'
 import { Mutation } from 'vuex-class'
-import { SET_WAVE_PRODUCT_LAYER_TYPE } from '@/store/types'
+import { SET_SHOW_STATION_SURGE_FORM, SET_WAVE_PRODUCT_LAYER_TYPE } from '@/store/types'
 /** 图层切换菜单栏 */
 @Component({})
 export default class LayersNavMenuView extends Vue {
@@ -39,31 +39,10 @@ export default class LayersNavMenuView extends Vue {
 		menuType: LayerTypeEnum
 	}[] = [
 		{
-			title: '72小时最大增水场',
-			desc: '72小时最大增水场',
-			icon: `fa-solid fa-water`,
-			icons: ['fa-solid', 'fa-water'],
-			menuType: LayerTypeEnum.RASTER_LAYER_WVE,
-		},
-		// {
-		// 	title: '平均周期',
-		// 	desc: '平均周期',
-		// 	icon: `fa-solid fa-hourglass-end`,
-		// 	icons: ['fa-solid', 'fa-magnifying-glass-location'],
-		// 	menuType: LayerTypeEnum.RASTER_LAYER_MWP,
-		// },
-		// {
-		// 	title: '平均波向',
-		// 	desc: '平均波向',
-		// 	icon: `fa-solid fa-location-arrow`,
-		// 	icons: ['fa-solid', 'fa-location-arrow'],
-		// 	menuType: LayerTypeEnum.RASTER_LAYER_MWD,
-		// },
-		{
 			title: '海洋站',
 			desc: '海洋站',
-			icon: `fa-solid fa-cloud-showers-water`,
-			icons: ['fa-solid', 'fa-cloud-showers-water'],
+			icon: `fa-solid fa-house-tsunami`,
+			icons: ['fa-solid', 'fa-house-tsunami'],
 			menuType: LayerTypeEnum.ICON_STATION,
 		},
 	]
@@ -73,16 +52,25 @@ export default class LayersNavMenuView extends Vue {
 		const desc: string = this.menuList.find((temp) => {
 			return temp.menuType == val
 		}).desc
-		this.setWaveProductLayerType(val)
+		// TODO:[*] 24-04-01 加入显示海洋站form的逻辑
+		switch (val) {
+			case LayerTypeEnum.ICON_STATION:
+				this.setShowStationForm(true)
+
+				break
+			default:
+				break
+		}
 		this.$message({
 			message: `选中${desc}栅格图层`,
 			type: 'success',
 		})
+		this.selectedNavMenu = LayerTypeEnum.UN_LAYER
 	}
 
-	/** 设置海浪产品图层种类 */
-	@Mutation(SET_WAVE_PRODUCT_LAYER_TYPE, { namespace: 'wave' })
-	setWaveProductLayerType: (val: LayerTypeEnum) => void
+	@Mutation(SET_SHOW_STATION_SURGE_FORM, { namespace: 'station' }) setShowStationForm: {
+		(val: boolean): void
+	}
 }
 </script>
 <style scoped lang="less">

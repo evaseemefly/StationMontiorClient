@@ -3,7 +3,7 @@
 		enter-active-class="animate__animated animate__fadeIn"
 		leave-active-class="animate__animated animate__fadeOut"
 	> -->
-	<div v-draggable id="station_surge_form" v-if="getIsShow" class="right-station-surge-form">
+	<div v-draggable id="station_surge_form" v-if="isShow" class="right-station-surge-form">
 		<div class="my-detail-form">
 			<div class="sub-titles">
 				<div class="title-border">
@@ -103,6 +103,11 @@ export default class StationDataFormView extends Vue {
 	/** 由RealdataHomeView 统一传递进本组件 */
 	@Prop({ type: Array, default: [] })
 	distStationNameDicts: { name: string; chname: string; sort: number }[]
+
+	/** 展开显示form由  getIsShow 与 codes 数量共同决定*/
+	get isShow(): boolean {
+		return this.getIsShow && this.getCodes.length > 0
+	}
 
 	@Getter(GET_SHOW_STATION_SURGE_FORM, { namespace: 'station' }) getIsShow: boolean
 
