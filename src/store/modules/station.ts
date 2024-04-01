@@ -70,7 +70,11 @@ const mutations = {
 	},
 	/** 向 codes中推送 code */
 	[PUSH_STATIONS_CODE](state: IStation, val: string): void {
-		state.stationsCodes.push(val)
+		// TODO:[-] 24-04-01 需要先检查是否存在指定code
+		// state.stationsCodes = state.stationsCodes.filter((temp) => temp != val)
+		if (state.stationsCodes.filter((temp) => temp == val).length == 0) {
+			state.stationsCodes.push(val)
+		}
 	},
 	/** 从 codes 中删除 code */
 	[REMOVE_STATIONS_CODE](state: IStation, val: string): void {

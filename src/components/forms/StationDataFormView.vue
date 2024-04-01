@@ -147,6 +147,9 @@ export default class StationDataFormView extends Vue {
 				this.subTitles.push({ title: filterTemp[0].chname, code: filterTemp[0].name })
 			}
 		}
+		// TODO:[-] 24-04-01 重新加载code后，默认选中最后一个code
+		const lastCode = val[val.length - 1]
+		this.commitCode(lastCode)
 	}
 
 	/** 监听当前选中 code
