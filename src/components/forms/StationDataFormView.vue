@@ -34,6 +34,7 @@
 					:isFinished="isChildFinished"
 					:stationCode="selectedCode"
 					:alertLevels="alertlevelList"
+					:stationName="subTitle"
 				></StationDataChart>
 			</div>
 		</div>
@@ -51,7 +52,7 @@ import {
 	SET_SHOW_STATION_SURGE_FORM,
 } from '@/store/types'
 import { DistStationSurgeListMidModel } from '@/middle_model/surge'
-import { DEFAULT_STATION_CODE } from '@/const/default'
+import { DEFAULT_STATION_CODE, DEFAULT_STATION_NAME } from '@/const/default'
 import { AlertTideEnum } from '@/enum/surge'
 /** + 24-03-21 海洋站数据显示form 包含 tabs 以及 charts 组件 */
 @Component({ components: { StationDataChart } })
@@ -69,6 +70,9 @@ export default class StationDataFormView extends Vue {
 	subTitles: { title: string; code: string }[] = []
 
 	subTitleIndex = -1
+
+	/** 副标题名称(当前选中的站点name) */
+	subTitle = DEFAULT_STATION_NAME
 
 	/** 当前 selectedCode 对应的数据集合 */
 	stationMergeDataList: {
@@ -137,6 +141,7 @@ export default class StationDataFormView extends Vue {
 			const element = this.subTitles[index]
 			if (element.code === code) {
 				this.subTitleIndex = index
+				this.subTitle = element.title
 			}
 		}
 	}

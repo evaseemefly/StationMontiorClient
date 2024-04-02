@@ -8,7 +8,25 @@
 	>
 		<div class="left-section">
 			<div class="info-card base-info">
-				<h3>{{ stationBaseInfo.station_name }} 站</h3>
+				<!-- 增水极值 -->
+				<ExtremumDetailProgressView
+					:value="extremumSurge.val"
+					title="增水极值"
+					:footerText="extremumSurge.dt"
+					:lineWidth="84"
+					:alertTides="alertLevels"
+				></ExtremumDetailProgressView>
+				<ExtremumDetailProgressView
+					:value="extremumTotalSurge.val"
+					title="总潮位极值"
+					:footerText="extremumTotalSurge.dt"
+					:lineWidth="84"
+					:alertTides="alertLevels"
+				></ExtremumDetailProgressView>
+				<div :key="index" v-for="(item, index) in alertLevels">
+					<AlertLevelRowView :title="item.alert" :content="item.tide"></AlertLevelRowView>
+				</div>
+				<!-- <h3>{{ stationBaseInfo.station_name }} 站</h3>
 				<div>
 					<div class="row">
 						<span>所属国家_en</span><span>{{ stationBaseInfo.country_en }}</span>
@@ -19,7 +37,7 @@
 					<div class="row">
 						<span>所属区域_ch</span><span>{{ stationBaseInfo.val_ch }}</span>
 					</div>
-					<!-- <div class="row"><span>站点</span><span>-</span></div> -->
+
 					<div class="row">
 						<span>位置</span
 						><span>{{ stationBaseInfo.lat }} | {{ stationBaseInfo.lon }}</span>
@@ -27,7 +45,7 @@
 					<div class="row">
 						<span>发布时间</span><span>{{ issueTs | formatTs2DayHM }}</span>
 					</div>
-				</div>
+				</div> -->
 			</div>
 			<!-- <div class="info-card forecast-info">
 				<h3>预报信息</h3>
@@ -68,7 +86,9 @@ import chroma from 'chroma-js'
 import {
 	DEFAULT_ALERT_TIDE,
 	DEFAULT_BOX_LOOP_LATLNG,
+	DEFAULT_DATE,
 	DEFAULT_STATION_CODE,
+	DEFAULT_STATION_NAME,
 	DEFAULT_SURGE_VAL,
 } from '@/const/default'
 // 接口
@@ -76,7 +96,7 @@ import { IHttpResponse } from '@/interface/common'
 
 import SurgeValsTableInLand from '@/components/table/SurgeValsTableInland.vue'
 import SubNavOffsetTimeItem from '@/components/nav/subItems/SubNavOffsetTimeItem.vue'
-
+import ExtremumDetailProgressView from '@/components/progress/extremumDetailProgressView.vue'
 // store
 import {
 	GET_CURRENT_FORECAST_DT,
@@ -108,6 +128,7 @@ import { LayerTypeEnum } from '@/enum/map'
 import { AlertTideEnum } from '@/enum/surge'
 import { StationBaseInfoMidModel } from '@/middle_model/station'
 import { MS_UNIT } from '@/const/unit'
+import AlertLevelRowView from '../rows/alertLevelRow.vue'
 
 @Component({
 	filters: {
@@ -121,6 +142,8 @@ import { MS_UNIT } from '@/const/unit'
 	components: {
 		SurgeValsTableInLand,
 		SubNavOffsetTimeItem,
+		ExtremumDetailProgressView,
+		AlertLevelRowView,
 	},
 })
 export default class StationDataChart extends Vue {
@@ -171,6 +194,10 @@ export default class StationDataChart extends Vue {
 	@Prop({ type: Boolean, default: false, required: false })
 	isFinished
 
+	/** 站点name */
+	@Prop({ type: String, default: DEFAULT_STATION_NAME, required: false })
+	stationName: string
+
 	/** 预报值(天文潮)列表 */
 	forcastValList: number[] = []
 
@@ -192,6 +219,12 @@ export default class StationDataChart extends Vue {
 	alertYellow: number = DEFAULT_ALERT_TIDE
 	alertOrange: number = DEFAULT_ALERT_TIDE
 	alertRed: number = DEFAULT_ALERT_TIDE
+
+	/** + 24-04-02 当前选中的站点的增水极值 */
+	extremumSurge: { val: number; dt: Date } = { val: 0, dt: DEFAULT_DATE }
+
+	/** + 24-04-02 当前选中的站点的总潮位极值 */
+	extremumTotalSurge: { val: number; dt: Date } = { val: 0, dt: DEFAULT_DATE }
 
 	/** TODO:[*] 24-03-26
 	 * 需要由父组件传入
@@ -614,6 +647,9 @@ export default class StationDataChart extends Vue {
 				this.myChart = myChart
 			}
 		}
+
+		this.extractExtremumSurge()
+		this.extractExtremumTotalSurge()
 	}
 
 	testMarkLine(index: number): void {
@@ -694,6 +730,26 @@ export default class StationDataChart extends Vue {
 	onGetStationCode(code: string): void {
 		this.stationCode = code
 		this.setStationBaseInfo(code)
+	}
+
+	/** 24-04-02 根据 surgeList 提取对应的极值以及对应时间*/
+	extractExtremumSurge(): void {
+		const maxVal = Math.max(...this.surgeList)
+		const maxValIndex = this.surgeList.findIndex((temp) => {
+			return temp == maxVal
+		})
+		const maxValDt: Date = new Date(this.tsList[maxValIndex] * MS_UNIT)
+		this.extremumSurge = { val: maxVal, dt: maxValDt }
+	}
+
+	/** 24-04-02 根据 totalSurgeList 提取对应的极值及对应时间 */
+	extractExtremumTotalSurge(): void {
+		const maxVal = Math.max(...this.totalSurgeList)
+		const maxValIndex = this.totalSurgeList.findIndex((temp) => {
+			return temp == maxVal
+		})
+		const maxValDt: Date = new Date(this.tsList[maxValIndex] * MS_UNIT)
+		this.extremumTotalSurge = { val: maxVal, dt: maxValDt }
 	}
 
 	/** 当前预报时间在 forecastDtList 中的所在 index */

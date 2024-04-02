@@ -10,6 +10,7 @@ import { TyphoonLevelEnum } from '@/enum/typhoon'
 import { LayerTypeEnum } from '@/enum/map'
 import { getDateDiffMs } from '@/util/dateUtil'
 import chroma from 'chroma-js'
+import { AlertTideEnum } from '@/enum/surge'
 /**
  * 将时间转换为指定的格式(str)
  *
@@ -310,6 +311,58 @@ const filterAlertSurgeColorStr = (val: number, alertTides: number[]): string => 
 }
 
 /**
+ * 根据传入的警戒潮位枚举返回对应的警戒潮位title
+ * @param val
+ * @returns 蓝色警戒潮位|..
+ */
+const filterAlertTitle = (val: AlertTideEnum): string => {
+	let text = ''
+	switch (val) {
+		case AlertTideEnum.BLUE:
+			text = '蓝色警戒潮位'
+			break
+		case AlertTideEnum.YELLOW:
+			text = '黄色警戒潮位'
+			break
+		case AlertTideEnum.ORANGE:
+			text = '橙色警戒潮位'
+			break
+		case AlertTideEnum.RED:
+			text = '红色警戒潮位'
+			break
+		default:
+			break
+	}
+	return text
+}
+
+/**
+ * 根据传入的警戒潮位枚举返回对应的警戒潮位的class
+ * @param val green|..
+ * @returns
+ */
+const filterAlertColorStr = (val: AlertTideEnum): string => {
+	let text = ''
+	switch (val) {
+		case AlertTideEnum.BLUE:
+			text = 'green'
+			break
+		case AlertTideEnum.YELLOW:
+			text = 'yellow'
+			break
+		case AlertTideEnum.ORANGE:
+			text = 'orange'
+			break
+		case AlertTideEnum.RED:
+			text = 'red'
+			break
+		default:
+			break
+	}
+	return text
+}
+
+/**
  * @description 根据字典获取对应的海洋站中文名
  * @author evaseemefly
  * @date 2022/11/09
@@ -502,4 +555,6 @@ export {
 	formatSurgeFixed2NumStr,
 	formatSurgeFiex1NumStr,
 	filterAlertSurgeColorStr,
+	filterAlertTitle,
+	filterAlertColorStr,
 }
