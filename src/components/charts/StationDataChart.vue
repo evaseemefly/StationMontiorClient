@@ -9,23 +9,31 @@
 		<div class="left-section">
 			<div class="info-card base-info">
 				<!-- 增水极值 -->
-				<ExtremumDetailProgressView
-					:value="extremumSurge.val"
-					title="增水极值"
-					:footerText="extremumSurge.dt"
-					:lineWidth="84"
-					:alertTides="alertLevels"
-				></ExtremumDetailProgressView>
-				<ExtremumDetailProgressView
-					:value="extremumTotalSurge.val"
-					title="总潮位极值"
-					:footerText="extremumTotalSurge.dt"
-					:lineWidth="84"
-					:alertTides="alertLevels"
-				></ExtremumDetailProgressView>
-				<div :key="index" v-for="(item, index) in alertLevels">
-					<AlertLevelRowView :title="item.alert" :content="item.tide"></AlertLevelRowView>
+				<div class="card-top">
+					<ExtremumDetailProgressView
+						:value="extremumSurge.val"
+						title="增水极值"
+						:footerText="extremumSurge.dt"
+						:lineWidth="84"
+						:alertTides="alertLevels"
+					></ExtremumDetailProgressView>
+					<ExtremumDetailProgressView
+						:value="extremumTotalSurge.val"
+						title="总潮位极值"
+						:footerText="extremumTotalSurge.dt"
+						:lineWidth="84"
+						:alertTides="alertLevels"
+					></ExtremumDetailProgressView>
 				</div>
+				<div class="card-bottom">
+					<div :key="index" v-for="(item, index) in alertLevels">
+						<AlertLevelRowView
+							:title="item.alert"
+							:content="item.tide"
+						></AlertLevelRowView>
+					</div>
+				</div>
+
 				<!-- <h3>{{ stationBaseInfo.station_name }} 站</h3>
 				<div>
 					<div class="row">
@@ -869,6 +877,14 @@ export default class StationDataChart extends Vue {
 				justify-content: space-between;
 				font-size: 14px;
 				line-height: 24px;
+			}
+			.card-top {
+				display: flex;
+				flex-direction: column;
+				flex-grow: 5;
+			}
+			.card-bottom {
+				flex-grow: 4;
 			}
 		}
 	}

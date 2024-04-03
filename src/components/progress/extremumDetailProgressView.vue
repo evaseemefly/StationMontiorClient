@@ -79,9 +79,11 @@ export default class ExtremumDetailProgressView extends Vue {
 	align-content: center;
 	align-items: center;
 	justify-content: center;
+	margin-top: 5px;
+	margin-bottom: 5px;
 	.progress-header {
-		font-size: 18px;
-		margin: 6px;
+		font-size: 14px;
+		margin: 5px;
 	}
 	.progress-line-part {
 		margin: 5px;
@@ -89,11 +91,12 @@ export default class ExtremumDetailProgressView extends Vue {
 	.process-line {
 		width: 100%;
 		border-radius: 5px;
-		font-size: 16px;
+		font-size: 18px;
 		font-weight: 600;
 	}
 	.progress-footer {
 		font-size: 14px;
+		margin: 5px;
 	}
 }
 .null-color {
