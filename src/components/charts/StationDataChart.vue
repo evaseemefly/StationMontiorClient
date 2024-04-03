@@ -863,6 +863,8 @@ export default class StationDataChart extends Vue {
 			width: 150px;
 			margin: 5px;
 			padding: 5px;
+			display: flex;
+			flex-direction: column;
 			h3 {
 				display: flex;
 				border-bottom: 1px solid #c4ccd6;
