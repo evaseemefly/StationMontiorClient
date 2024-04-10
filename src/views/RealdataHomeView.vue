@@ -20,6 +20,7 @@
 			:distStationRealdataList="distStationRealdataList"
 			:distStationsAlertlevelList="distStationsAlertlevelList"
 			:distStationBaseInfoList="distStationBaseInfoList"
+			:distStationWindRealdataList="distStationWindRealdataList"
 			:distStationNameDicts="distStationNameDicts"
 		></StationDataFormView>
 		<!-- <div><StationTideFormView></StationTideFormView></div> -->
@@ -86,10 +87,12 @@ import {
 	loadDistStationRealdataList,
 	loadDistStationRealdataExtremumList,
 } from '@/api/surge'
+import { loadDistStationWindRealdataList } from '@/api/wind'
 import { loadDistStationBaseInfoList, loadDistStationsAlertLevelList } from '@/api/station'
 
 // middle_model
 import { DistStationSurgeListMidModel } from '@/middle_model/surge'
+import { DistStationWindListMidModel } from '@/middle_model/wind'
 
 /** + 24-03-11 实况Home页 */
 @Component({
@@ -142,6 +145,9 @@ export default class RealdataHomeView extends Vue {
 	/** 所有站点实况集合 */
 	distStationRealdataList: DistStationSurgeListMidModel[] = []
 
+	/** 所有站点的风要素集合 */
+	distStationWindRealdataList: DistStationWindListMidModel[] = []
+
 	/** 海洋站名称中英文对照字典 */
 	distStationNameDicts: { name: string; chname: string; sort: number }[] = []
 
@@ -156,11 +162,12 @@ export default class RealdataHomeView extends Vue {
 		this.isFinished = false
 		// 一次性加载所有所需异步请求
 		return Promise.all([
-			this.loadDistStationRealdataList(this.issueTs, this.endTs),
+			this.loadDistStationSurgeRealdataList(this.issueTs, this.endTs),
 			this.loadDistStationAlertlevelList(),
 			this.loadDistStationAstronomictideList(this.issueTs, this.endTs),
 			this.loadDistStationBaseInfoList(),
 			this.loadDistStationRealdataExtremumList(this.issueTs, this.endTs),
+			this.loadDistStationWindRealdataList(this.issueTs, this.endTs),
 		]).then(() => {
 			console.log('执行所有异步请求完毕')
 			this.isLoading = true
@@ -234,7 +241,7 @@ export default class RealdataHomeView extends Vue {
 	}
 
 	/** 加载所有站点实况集合 */
-	loadDistStationRealdataList(startTs: number, endTs: number) {
+	loadDistStationSurgeRealdataList(startTs: number, endTs: number) {
 		// this.isLoading = true
 		return loadDistStationRealdataList(startTs, endTs)
 			.then((res) => {
@@ -253,6 +260,22 @@ export default class RealdataHomeView extends Vue {
 				// this.isLoading = false
 				console.log('loadDistStationRealdataList over')
 			})
+	}
+
+	/** 根据起止时间加载所有站点的风要素实况 */
+	loadDistStationWindRealdataList(startTs, endTs) {
+		return loadDistStationWindRealdataList(startTs, endTs).then((res) => {
+			if (res.status == 200) {
+				this.distStationWindRealdataList = res.data.map((temp) => {
+					return new DistStationWindListMidModel(
+						temp.station_code,
+						temp.ts_list,
+						temp.ws_list,
+						temp.dir_list
+					)
+				})
+			}
+		})
 	}
 
 	/** 加载所有站点的警戒潮位集合 */

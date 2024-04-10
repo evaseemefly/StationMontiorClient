@@ -289,7 +289,7 @@ const filterSurgeColorStr = (val: number): string => {
 const filterWindColorStr = (val: number): string => {
 	const scale = chroma
 		.scale(['#153C83', '#4899D9', '#FFFB58', '#F1C712', '#E79325', '#F22015', '#C40E0F'])
-		.domain([3, 5, 8, 10, 13, 15])
+		.domain([5, 8, 10, 14, 18, 21])
 	const colorStr = scale(val).hex()
 	return colorStr
 }

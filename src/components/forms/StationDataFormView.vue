@@ -35,6 +35,8 @@
 					:stationCode="selectedCode"
 					:alertLevels="alertlevelList"
 					:stationName="subTitle"
+					:wdList="wdList"
+					:wsList="wsList"
 				></StationDataChart>
 			</div>
 		</div>
@@ -54,6 +56,7 @@ import {
 import { DistStationSurgeListMidModel } from '@/middle_model/surge'
 import { DEFAULT_STATION_CODE, DEFAULT_STATION_NAME } from '@/const/default'
 import { AlertTideEnum } from '@/enum/surge'
+import { DistStationWindListMidModel } from '@/middle_model/wind'
 /** + 24-03-21 海洋站数据显示form 包含 tabs 以及 charts 组件 */
 @Component({ components: { StationDataChart } })
 export default class StationDataFormView extends Vue {
@@ -96,6 +99,10 @@ export default class StationDataFormView extends Vue {
 	@Prop({ type: Array, default: [] })
 	distStationRealdataList: DistStationSurgeListMidModel[]
 
+	/** 不同站点的风要素集合 */
+	@Prop({ type: Array, default: [] })
+	distStationWindRealdataList: DistStationWindListMidModel[]
+
 	/** + 24-03-14 所有站点的警戒潮位集合 */
 	@Prop({ type: Array, default: () => [] })
 	distStationsAlertlevelList: {
@@ -127,6 +134,13 @@ export default class StationDataFormView extends Vue {
 	surgeList: number[] = []
 	/** 对应时间戳数组 */
 	tsList: number[] = []
+
+	/** 风向集合 */
+	wdList: number[] = []
+
+	/** 风速集合 */
+	wsList: number[] = []
+
 	/** 当前code对应的警戒潮位集合 */
 	alertlevelList: {
 		tide: number
@@ -182,6 +196,10 @@ export default class StationDataFormView extends Vue {
 		const tempFilterAstronmictideRes = this.distStationAstronmictideList.filter(
 			(temp) => temp.stationCode == code
 		)
+		/** 当前code 对应的风要素集合 */
+		const tempFilterWindRes = this.distStationWindRealdataList.filter(
+			(temp) => temp.stationCode == code
+		)
 
 		// step2: 为天文潮与实况赋值
 		this.realdataList =
@@ -194,6 +212,9 @@ export default class StationDataFormView extends Vue {
 		this.surgeList = this.tideList.map((ele, index) => {
 			return this.realdataList[index] - ele
 		})
+		this.wdList = tempFilterWindRes.length > 0 ? tempFilterWindRes[0].wdList : []
+
+		this.wsList = tempFilterWindRes.length > 0 ? tempFilterWindRes[0].wsList : []
 
 		// step 3: 获取指定站点对应的警戒潮位
 		if (tempFilterAlertRes.length > 0) {

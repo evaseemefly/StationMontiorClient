@@ -134,8 +134,8 @@ import { MS_UNIT } from '@/const/unit'
 /** 风暴潮 tab */
 @Component({ filters: { formatDir2Int, formatSurgeFixed2Str, formatDate2DayHM, formatTs2DayHM } })
 export default class SurgeValsTableInLand extends Vue {
-	MAX_SPLIT_LIST_COUNT = 24
-	MAX_WS_COUNT = 24
+	MAX_SPLIT_LIST_COUNT = 144
+	MAX_WS_COUNT = 144
 	@Prop({ type: Boolean, default: false })
 	isLoading: boolean
 
