@@ -207,6 +207,7 @@ export default class StationAlertListView extends Vue {
 		this.selectedTrIndex = index
 	}
 
+	/** 添加当前code至 codes 中 */
 	@Mutation(PUSH_STATIONS_CODE, { namespace: 'station' })
 	pushStationsCodes: { (code: string): void }
 

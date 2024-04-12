@@ -16,7 +16,7 @@ import { Getter } from 'vuex-class'
 })
 export default class DisplayTabsView extends Vue {
 	/** 可显示的最多站点数量 */
-	@Prop({ type: Array, required: false, default: 5 })
+	@Prop({ type: Number, required: false, default: 5 })
 	maxCount: number
 
 	/** 当前显示的站点 */

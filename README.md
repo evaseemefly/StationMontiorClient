@@ -65,6 +65,10 @@
   ![007](/docs/fd_imgs/007.png)
   ![008](/docs/fd_imgs/008.png)
 
+  - 24-04-12 修复了缺省值造成的bug
+  ![009](/docs/fd_imgs/009.png)
+  ![010](/docs/fd_imgs/010.png)
+
 - [ ]  4 系统总体截图
   ![005](/docs/fd_imgs/005.png)
 

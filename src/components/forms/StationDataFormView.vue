@@ -210,7 +210,7 @@ export default class StationDataFormView extends Vue {
 			return ts
 		})
 		this.surgeList = this.tideList.map((ele, index) => {
-			return this.realdataList[index] - ele
+			return this.realdataList[index] == null ? null : this.realdataList[index] - ele
 		})
 		this.wdList = tempFilterWindRes.length > 0 ? tempFilterWindRes[0].wdList : []
 

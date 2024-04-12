@@ -68,6 +68,16 @@ const DEFAULT_VAL = -9999
 // 对应 db: dict_base -> 默认的 code
 const DEFAULT_DICT_KEY = -1
 
+/** + 24-04-12 默认值集合 */
+const DEFAULT_VAL_LIST = [
+	DEFAULT_ALERT_TIDE,
+	DEFAULT_SURGE_DIFF,
+	DEFAULT_SURGE_VAL,
+	DEFAULT_VAL,
+	9999,
+	9998,
+]
+
 /** 用于 复杂唯一性查询 的 year 与 month 的默认值 */
 const DEFAULT_COMPLEX_NUM = -1
 
@@ -98,4 +108,5 @@ export {
 	NONE_STATION_NAME,
 	DEFAULT_WD_TIME_SPAN,
 	DEFAULT_VAL,
+	DEFAULT_VAL_LIST,
 }

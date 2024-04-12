@@ -61,7 +61,7 @@ import RegionStatisticsCard from '@/components/cards/regionStatisticsCard.vue'
 import DisplayTabsView from '@/components/table/father/displayTabsView.vue'
 
 // 默认值
-import { DEFAULT_DATE, DEFAULT_TIMESTAMP, DEFAULT_TY_NUM } from '@/const/default'
+import { DEFAULT_DATE, DEFAULT_TIMESTAMP, DEFAULT_TY_NUM, DEFAULT_VAL_LIST } from '@/const/default'
 // vuex
 import {
 	SET_WAVE_PRODUCT_ISSUE_DATETIME,
@@ -168,12 +168,20 @@ export default class RealdataHomeView extends Vue {
 			this.loadDistStationBaseInfoList(),
 			this.loadDistStationRealdataExtremumList(this.issueTs, this.endTs),
 			this.loadDistStationWindRealdataList(this.issueTs, this.endTs),
-		]).then(() => {
-			console.log('执行所有异步请求完毕')
-			this.isLoading = true
-			this.isFinished = true
-			this.loadDistStationNameDicts(this.distStationBaseInfoList)
-		})
+		])
+			.then(() => {
+				console.log('执行所有异步请求完毕')
+				this.isLoading = true
+				this.isFinished = true
+				this.loadDistStationNameDicts(this.distStationBaseInfoList)
+			})
+			.finally(() => {
+				this.isFinished = true
+				this.isLoading = true
+			})
+			.catch(() => {
+				console.log('执行RealData -> initLoad 出现异常')
+			})
 	}
 
 	mounted() {
@@ -243,15 +251,27 @@ export default class RealdataHomeView extends Vue {
 	/** 加载所有站点实况集合 */
 	loadDistStationSurgeRealdataList(startTs: number, endTs: number) {
 		// this.isLoading = true
+
 		return loadDistStationRealdataList(startTs, endTs)
 			.then((res) => {
 				if (res.status == 200) {
-					// TODO:[-] 23-08-28 由于distStationsTotalSurgeList需要传入子组件中，排序放在外侧执行
+					//  23-08-28 由于distStationsTotalSurgeList需要传入子组件中，排序放在外侧执行
+					// 此处应加入判断，对于包含默认值的替换为None或null
 					this.distStationRealdataList = res.data.map((temp) => {
+						/** 标准化后的集合 */
+						let standardSurgeList: number[] = []
+						// 若为缺省值则填充null
+						for (let index = 0; index < temp.surge_list.length; index++) {
+							if (DEFAULT_VAL_LIST.includes(temp.surge_list[index])) {
+								standardSurgeList.push(null)
+							} else {
+								standardSurgeList.push(temp.surge_list[index])
+							}
+						}
 						return new DistStationSurgeListMidModel(
 							temp.station_code,
 							temp.ts_list,
-							temp.surge_list
+							standardSurgeList
 						)
 					})
 				}

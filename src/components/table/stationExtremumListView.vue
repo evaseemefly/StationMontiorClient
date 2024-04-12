@@ -118,9 +118,9 @@ export default class StationExtremumListView extends Vue {
 		surge: number
 		dt: Date
 		/** 实况 */
-		realdata: number
+		// realdata: number
 		/** 天文潮 */
-		tide: number
+		// tide: number
 		sort: number
 	}[] = []
 
@@ -162,32 +162,50 @@ export default class StationExtremumListView extends Vue {
 			surge: number
 			dt: Date
 			/** 实况 */
-			realdata: number
+			// realdata: number
 			/** 天文潮 */
-			tide: number
+			// tide: number
 			sort
 		}[] = []
 
+		// 循环得是不同的站点
 		for (let index = 0; index < this.distStationTotalSurgeList.length; index++) {
+			/** 当前循环的总潮位对象 */
 			const element = this.distStationTotalSurgeList[index]
+
 			const filterAst = this.distStationAstronmictideList.filter(
 				(x) => x.stationCode == element.stationCode
 			)
 			if (filterAst.length > 0) {
+				/** 当前code对应的天文潮对象 */
 				const tempAst = filterAst[0]
 				if (element.surgeList.length === tempAst.surgeList.length) {
-					const tempSurge = element.surgeList[index]
-					const tempTide = tempAst.surgeList[index]
+					// 生成增水集合=总潮位-天文潮
+					let surgeList: { ts: number; surge: number }[] = []
+					for (let childIndex = 0; childIndex < tempAst.surgeList.length; childIndex++) {
+						/** 总潮位 */
+						const tempSurge =
+							element.surgeList[childIndex] - tempAst.surgeList[childIndex]
+						const tempTs = element.tsList[childIndex]
+						surgeList.push({ ts: tempTs, surge: tempSurge })
+					}
+					const surgeMaxElement: { ts: number; surge: number } = null
+					const surgeValList: number[] = surgeList.map((item) => item.surge)
+					const surgeMaxVal: number = Math.max(...surgeValList)
+					const surgeMaxFilter = surgeList.find((temp) => temp.surge == surgeMaxVal)
+					const surgeMaxTs: number = surgeMaxFilter ? surgeMaxFilter.ts : null
+					// const tempSurge = element.surgeList[index]
+					// const tempTide = tempAst.surgeList[index]
 					const tempStationDict = this.stationNameDict.find((x) => {
 						return x.name == element.stationCode
 					})
 					const tempMixSurge = {
 						stationCode: element.stationCode,
 						stationName: tempStationDict.chname,
-						surge: tempSurge - tempTide,
-						realdata: tempSurge,
-						tide: tempTide,
-						dt: new Date(element.tsList[index] * MS_UNIT),
+						surge: surgeMaxVal,
+						// realdata: tempSurge,
+						// tide: tempTide,
+						dt: new Date(surgeMaxTs * MS_UNIT),
 						sort: tempStationDict.sort,
 					}
 					stationSurgeMixList.push(tempMixSurge)

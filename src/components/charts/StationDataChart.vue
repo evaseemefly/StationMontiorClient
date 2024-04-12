@@ -281,6 +281,13 @@ export default class StationDataChart extends Vue {
 	/** 表格中的海浪观测数据 */
 	tableWaveValsList: { mwd: number; mwp: number; forecastDt: Date }[] = []
 
+	mounted() {
+		// 由于 父组件通过 v-if 展示此组件，导致prop 的 isFinished,stationCode 发生变化(理应发生变化时)本组件还未被创建
+		if (this.chartOpts.isFinished) {
+			this.toInitCharts(this.chartOpts.stationCode)
+		}
+	}
+
 	loadStationRegionCountry(code: string): void {
 		loadStaionRegionCountry(code).then(
 			(
@@ -786,31 +793,38 @@ export default class StationDataChart extends Vue {
 	onChartOpts(val: { isFinished: boolean; stationCode: string }): void {
 		// this.loadStationRegionCountry(val.stationCode)
 		if (val.isFinished) {
-			//step1: 为总潮位赋值
-			this.totalSurgeList = []
-			this.spliceAlerts2Instance(this.alertLevels)
-			for (let index = 0; index < this.tideList.length; index++) {
-				const element = this.tideList[index] + this.surgeList[index]
-				this.totalSurgeList.push(element)
-			}
-			let dtList: Date[] = []
-			dtList = this.tsList.map((ts) => {
-				return new Date(ts * MS_UNIT)
-			})
-			this.dtList = dtList
-			this.yAxisMax = Math.max(...this.surgeList, ...this.tideList, ...this.totalSurgeList)
-			this.yAxisMin = Math.min(...this.surgeList, ...this.tideList, ...this.totalSurgeList)
-			this.initCharts(
-				dtList,
-				[
-					{ fieldName: 'surge', yList: this.totalSurgeList },
-					{ fieldName: 'tide', yList: this.tideList },
-				],
-				{ fieldName: 'difftide', vals: this.surgeList },
-				'站点实况',
-				0
-			)
+			this.toInitCharts(val.stationCode)
 		}
+	}
+
+	/** 由onChartOpts提取到外部
+	 * 初始化charts
+	 */
+	toInitCharts(code: string) {
+		//step1: 为总潮位赋值
+		this.totalSurgeList = []
+		this.spliceAlerts2Instance(this.alertLevels)
+		for (let index = 0; index < this.tideList.length; index++) {
+			const element = this.tideList[index] + this.surgeList[index]
+			this.totalSurgeList.push(element)
+		}
+		let dtList: Date[] = []
+		dtList = this.tsList.map((ts) => {
+			return new Date(ts * MS_UNIT)
+		})
+		this.dtList = dtList
+		this.yAxisMax = Math.max(...this.surgeList, ...this.tideList, ...this.totalSurgeList)
+		this.yAxisMin = Math.min(...this.surgeList, ...this.tideList, ...this.totalSurgeList)
+		this.initCharts(
+			dtList,
+			[
+				{ fieldName: 'surge', yList: this.totalSurgeList },
+				{ fieldName: 'tide', yList: this.tideList },
+			],
+			{ fieldName: 'difftide', vals: this.surgeList },
+			'站点实况',
+			0
+		)
 	}
 
 	/** 将传入的 alerts 按照警戒潮位登记 赋值给 alertBlue ....  */

@@ -39,7 +39,6 @@
 
 			<LCircle
 				:lat-lng="currentLatlng"
-				:radius="boxRadius * boxRadiusUnit"
 				:opacity="boxOptions.colorOpacity"
 				:color="boxOptions.background"
 				:fillColor="boxOptions.background"
@@ -112,6 +111,7 @@ import {
 	SET_SCALAR_SHOW_TYPE,
 	SET_RASTER_COLOR_SCALE_RANGE,
 	SET_STATIONS_BASEINFO_LIST,
+	PUSH_STATIONS_CODE,
 } from '@/store/types'
 // 默认常量
 import {
@@ -243,11 +243,11 @@ export default class RealdataMapView extends Vue {
 
 	/** + 24-03-28 由 RealdataHomeView 父组件 => 站点基础信息集合，在地图中进行加载 */
 	@Prop({ type: Array, default: () => [] })
-	stationInfoList: StationBaseInfoMidModel[] = []
+	stationInfoList: StationBaseInfoMidModel[]
 
 	/** + 24-03-29 由 RealdataHomeView 父组件 => 站点实况集合，在地图中进行加载 */
 	@Prop({ type: Array, default: () => [] })
-	distStationRealdataList: DistStationSurgeListMidModel[] = []
+	distStationRealdataList: DistStationSurgeListMidModel[]
 
 	@Prop({ type: Boolean, default: false })
 	isFinished: boolean
@@ -315,7 +315,8 @@ export default class RealdataMapView extends Vue {
 	}
 
 	private loadStationAndShow(code: string): void {
-		this.setStationCode(code)
+		// this.setStationCode(code)
+		this.pushStationsCodes(code)
 		this.setShowStationSurgeForm(true)
 	}
 
@@ -324,6 +325,10 @@ export default class RealdataMapView extends Vue {
 
 	/** 设置当前潮位站 code */
 	@Mutation(SET_STATION_CODE, { namespace: 'station' }) setStationCode
+
+	/** 添加当前code至 codes 中 */
+	@Mutation(PUSH_STATIONS_CODE, { namespace: 'station' })
+	pushStationsCodes: { (code: string): void }
 
 	/** 设置 显示|隐藏 station surge form */
 	@Mutation(SET_SHOW_STATION_SURGE_FORM, { namespace: 'station' }) setShowStationSurgeForm
