@@ -79,7 +79,7 @@ import { MapMixin } from '@/views/map/mixin/mapMixin'
 import { FilterTyMidModel, TyRealDataMongoMidModel } from '@/middle_model/typhoon'
 import { ISearchTyStationParams } from '@/middle_model/api_params'
 import { TyphoonCircleStatus, TyCMAPathLine } from '@/middle_model/leaflet_plugin'
-import { addStationIcon2Map, IconTyphoonCirlePulsing } from '@/middle_model/icon'
+import { addFubsIcon2Map, addStationIcon2Map, IconTyphoonCirlePulsing } from '@/middle_model/icon'
 // 接口类
 import { IStationIcon, IStationInfo } from '@/interface/station'
 import { IHttpResponse } from '@/interface/common'
@@ -112,6 +112,7 @@ import {
 	SET_RASTER_COLOR_SCALE_RANGE,
 	SET_STATIONS_BASEINFO_LIST,
 	PUSH_STATIONS_CODE,
+	SET_OBSERVATION_TYPE,
 } from '@/store/types'
 // 默认常量
 import {
@@ -132,7 +133,7 @@ import {
 // enum
 import { IconTypeEnum, ScalarShowTypeEnum, StationIconShowTypeEnum } from '@/enum/common'
 import { MenuType, TyScatterMenuType } from '@/enum/menu'
-import { LayerTypeEnum, MapLayerEnum, RasterLayerEnum } from '@/enum/map'
+import { LayerTypeEnum, MapLayerEnum, RasterLayerEnum, StationIconLayerEnum } from '@/enum/map'
 
 // api
 import { loadTyRealDataList, loadStationTideDataList } from '@/api/typhoon'
@@ -193,6 +194,7 @@ import { IWdSurgeLayerOptions } from './types/types'
 import { IScale } from '@/const/colorBar'
 import { getIntegerList } from '@/util/math'
 import { DistStationSurgeListMidModel } from '@/middle_model/surge'
+import { FubBaseInfoMidModel } from '@/middle_model/fub'
 
 /**
  * 实况 map view
@@ -244,6 +246,10 @@ export default class RealdataMapView extends Vue {
 	/** + 24-03-28 由 RealdataHomeView 父组件 => 站点基础信息集合，在地图中进行加载 */
 	@Prop({ type: Array, default: () => [] })
 	stationInfoList: StationBaseInfoMidModel[]
+
+	/** + 24-04-25 由 RealdataHomeView 父组件 => 站点浮标信息集合，在地图中进行加载 */
+	@Prop({ type: Array, default: () => [] })
+	fubInfoList: FubBaseInfoMidModel[]
 
 	/** + 24-03-29 由 RealdataHomeView 父组件 => 站点实况集合，在地图中进行加载 */
 	@Prop({ type: Array, default: () => [] })
@@ -314,10 +320,15 @@ export default class RealdataMapView extends Vue {
 		})
 	}
 
-	private loadStationAndShow(code: string): void {
+	/** 加载 station surge form -- 新增观测手段: fub|station */
+	private loadStationAndShow(
+		code: string,
+		obsType: StationIconLayerEnum = StationIconLayerEnum.ICON_STATION
+	): void {
 		// this.setStationCode(code)
 		this.pushStationsCodes(code)
 		this.setShowStationSurgeForm(true)
+		this.setObservationType(obsType)
 	}
 
 	/** 设置台风的时间间隔步长 */
@@ -332,6 +343,10 @@ export default class RealdataMapView extends Vue {
 
 	/** 设置 显示|隐藏 station surge form */
 	@Mutation(SET_SHOW_STATION_SURGE_FORM, { namespace: 'station' }) setShowStationSurgeForm
+
+	/** 设置 station surge fomr 的观测手段 STATION|FUB */
+	@Mutation(SET_OBSERVATION_TYPE, { namespace: 'station' })
+	setObservationType: { (val: StationIconLayerEnum): void }
 
 	@Mutation(SET_RASTER_COLOR_SCALE_RANGE, { namespace: 'common' }) setRasterColorScaleRange: (
 		val: IScale
@@ -435,7 +450,7 @@ export default class RealdataMapView extends Vue {
 		}
 	}
 
-	/** TODO:[*] 24-03-29 将不同站点的总潮位添加至map */
+	/**  24-03-29 将不同站点的总潮位添加至map */
 	addDistStationTotalSurge2Map() {
 		const mymap: L.Map = this.$refs.basemap['mapObject']
 		const that = this
@@ -482,10 +497,25 @@ export default class RealdataMapView extends Vue {
 		that.zoom2Country()
 	}
 
+	/** TODO:[*] 24-04-26 添加 this.fubInfoList 至map */
+	addDistFubs2Map() {
+		const mymap: L.Map = this.$refs.basemap['mapObject']
+		const that = this
+		addFubsIcon2Map(
+			mymap,
+			this.fubInfoList,
+			(msg: { code: string; name: string; iconType: StationIconLayerEnum }) => {
+				console.log(`当前点击了code:${msg.code},name:${msg.name},layerType:${msg.iconType}`)
+				that.loadStationAndShow(msg.code, msg.iconType)
+			}
+		)
+	}
+
 	@Watch('isFinished')
 	onIsFinished(val: boolean) {
 		if (val) {
 			this.addDistStationTotalSurge2Map()
+			this.addDistFubs2Map()
 		}
 	}
 

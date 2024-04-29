@@ -4,9 +4,11 @@ enum ConstLayerTypeEnum {
 
 export enum StationIconLayerEnum {
 	/**
-	 * 海洋站图层
+	 * 海洋站icon图层
 	 */
 	ICON_STATION = 1011,
+	/** 浮标icon图层 */
+	ICON_FUB = 1012,
 }
 
 /** 基础图层枚举 */

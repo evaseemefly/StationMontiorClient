@@ -12,8 +12,11 @@ import {
 	GET_STATIONS_CODES,
 	PUSH_STATIONS_CODE,
 	REMOVE_STATIONS_CODE,
+	GET_OBSERVATION_TYPE,
+	SET_OBSERVATION_TYPE,
 } from '../types'
 import { DEFAULT_STATION_CODE } from '@/const/default'
+import { StationIconLayerEnum } from '@/enum/map'
 interface IStation {
 	stationCode: string
 	isShowStationSurgeForm: boolean
@@ -22,6 +25,8 @@ interface IStation {
 	stationBaseInfoList: StationBaseInfoMidModel[]
 	/** 选中的海洋站codes */
 	stationsCodes: string[]
+	/** 观测手段:StationIconLayerEnum FUB|STATION */
+	observationType: StationIconLayerEnum
 }
 
 const state: IStation = {
@@ -31,6 +36,8 @@ const state: IStation = {
 	/** 海洋站基础信息集合 */
 	stationBaseInfoList: [],
 	stationsCodes: [],
+	/** 观测手段 */
+	observationType: StationIconLayerEnum.ICON_STATION,
 }
 const getters = {
 	[GET_STATION_CODE](state: IStation): string {
@@ -47,6 +54,9 @@ const getters = {
 	},
 	[GET_STATIONS_CODES](state: IStation): string[] {
 		return state.stationsCodes
+	},
+	[GET_OBSERVATION_TYPE](state: IStation): StationIconLayerEnum {
+		return state.observationType
 	},
 }
 // 使用dispatch调用
@@ -79,6 +89,9 @@ const mutations = {
 	/** 从 codes 中删除 code */
 	[REMOVE_STATIONS_CODE](state: IStation, val: string): void {
 		state.stationsCodes = state.stationsCodes.filter((temp) => temp != val)
+	},
+	[SET_OBSERVATION_TYPE](state: IStation, val: StationIconLayerEnum): void {
+		state.observationType = val
 	},
 }
 

@@ -15,6 +15,9 @@ import { StationSurgeMidModel } from '@/middle_model/station'
 // filter
 import { filterSpiderStationStatusCls, filterStationNameCh } from '@/util/filter'
 import { getDateDiffMs } from '@/util/dateUtil'
+import { IIconImplement } from '@/interface/leaflet_icon'
+import { FubBaseInfoMidModel } from './fub'
+import { StationIconLayerEnum } from '@/enum/map'
 
 interface IIconPlusingOptions {
 	val?: number
@@ -225,6 +228,48 @@ class IconCirlePulsing extends AbsIconCirle {
 }
 
 /**
+ * @description 静态 cirle icon
+ * @author evaseemefly
+ * @date 2024/04/26
+ * @class IconStaticsCirle
+ * @implements {IIconImplement}
+ */
+class IconStaticsCirle implements IIconImplement {
+	code: string
+	name: string
+	lat: number
+	lon: number
+	iconType: IconTypeEnum
+	constructor(code: string, name: string, lat: number, lon: number, iconType: IconTypeEnum) {
+		this.code = code
+		this.name = name
+		this.lat = lat
+		this.lon = lon
+		this.iconType = iconType
+	}
+
+	toHtml(): string {
+		// 固定宽度 cirle icon 半径和高度为固定值
+		const fixedRadius = 8
+		const divHtml = `<div class="my-leaflet-pulsing-marker" >              
+              <div class="my-leaflet-pulsing-icon ${this.getAlarmColor()}" style="width: ${fixedRadius}px;height:${fixedRadius}px;left:${
+			-fixedRadius / 2
+		}px;top:${-fixedRadius / 2}px"></div>
+            </div>`
+		return divHtml
+	}
+
+	getAlarmColor(): string {
+		const colorStr = '#000000'
+		return colorStr
+	}
+	getClassName(): string {
+		return ''
+		// throw new Error('Method not implemented.')
+	}
+}
+
+/**
  * @description 动态(根据surge动态设置半径)圆形icon(不带脉冲效果)
  * copy 自 IconCirlePulsing
  * @author evaseemefly
@@ -300,33 +345,6 @@ class FixedIconCirle extends AbsIconCirle {
 	 */
 	protected getAlarmColor(): string {
 		// TODO:[-] 21-06-08 此处代码与 middle_model -> stations.ts -> IconFormMinStationSurgeMidModel -> getAlarmColor 重复
-		// const surge = this.config.val
-		// let colorStr = 'green'
-		// /** 获取 now-realtime(ms) */
-		// const diffDt: number = getDateDiffMs(this.config.gmtNow, this.config.gmtRealTime)
-		// if (diffDt) {
-		// 	switch (true) {
-		// 		// < 1h
-		// 		case diffDt <= 1 * 60 * 60 * 1000:
-		// 			colorStr = 'green-icon'
-		// 			break
-		// 		// < 2h
-		// 		case surge <= 2 * 60 * 60 * 1000:
-		// 			colorStr = 'blue'
-		// 			break
-		// 		// < 6h
-		// 		case surge <= 6 * 60 * 60 * 1000:
-		// 			colorStr = 'yellow'
-		// 			break
-		// 		// < 24h
-		// 		case surge <= 24 * 60 * 60 * 1000:
-		// 			colorStr = 'orange'
-		// 			break
-		// 		case surge > 24 * 60 * 60 * 1000:
-		// 			colorStr = 'red'
-		// 			break
-		// 	}
-		// }
 
 		return filterSpiderStationStatusCls(this.config.gmtRealTime, this.config.gmtNow)
 
@@ -674,6 +692,37 @@ class IconDetailedStationSurge {
 }
 
 /**
+ * @description 只有title的icon(一般为name)
+ * 与 @/src/middle_model/station -> IconFormTitleStationSurgeMidModel 相似
+ * @author evaseemefly
+ * @date 2024/04/28
+ * @class IconOnlyTitle
+ * @implements {IToHtml}
+ */
+class IconOnlyTitle implements IToHtml {
+	/** 中文名称 */
+	name: string
+	/** code */
+	code: string
+	constructor(name: string, code: string) {
+		this.name = name
+		this.code = code
+	}
+	toHtml(): string {
+		const divHtml = `<div class="my-station-title-surge-div">
+        <div class="station-title-div-title">${this.name}</div>
+        </div>`
+		return divHtml
+	}
+	getClassName(): string {
+		return `station-surge-icon-onlytitle `
+	}
+	getStationCode(): string {
+		return this.code
+	}
+}
+
+/**
  * 根据台风等级获取对应的台风 icon url
  *
  * @param {string} tyType
@@ -896,6 +945,164 @@ const addStationIcon2Map = (
 	return [pulsingLayerGroupId, divLayerGroupId]
 }
 
+/**
+ * @description 添加指定 fub 集合至 map
+ * @author evaseemefly
+ * @date 2024/04/29
+ * @param {L.Map} mymap
+ * @param {FubBaseInfoMidModel[]} fubList
+ * @param {(stationTemp: {
+ * 		code: string
+ * 		name: string
+ * 		iconType: StationIconLayerEnum
+ * 	}) => void} callbackFunc 回调函数，执行完add2map操作后统一执行
+ */
+const addFubsIcon2Map = (
+	mymap: L.Map,
+	fubList: FubBaseInfoMidModel[],
+	callbackFunc: (stationTemp: {
+		code: string
+		name: string
+		iconType: StationIconLayerEnum
+	}) => void
+): void => {
+	const icons: IIconImplement[] = []
+	for (const fub of fubList) {
+		const tempIcon: IconStaticsCirle = new IconStaticsCirle(
+			fub.stationCode,
+			fub.stationName,
+			fub.lat,
+			fub.lon,
+			IconTypeEnum.FUB_ICON
+		)
+		icons.push(tempIcon)
+	}
+	addStaticsIcon2Map(mymap, icons, StationIconLayerEnum.ICON_FUB, callbackFunc)
+}
+
+/**
+ * @description 将传入的 icon 实现集合添加至 map
+ * 待测试
+ * 	 * 大体逻辑步骤，需要添加的为静态icon
+ * 一般流程为: 1 创建icon 对象，声明 className, html,
+ * 			  2 根据创建的icon，创建marker，声明 lat,lon,icon,以及传入的 customdata
+ * 			  3 创建 layerGroup 并将 marker 添加至 group 统一添加至 map
+ * ****
+ * 添加至的map由实参传入，icons为对应的实参传入
+ * 此处存在一个问题，由于icons已经由实参传入时已经实现，对于icons的实现在父级调用时已经实现，此处应修改
+ * 修改方法1:可以在本文件中加入添加不同类型的icon的一个修饰类 类似于 addStationIcon2Map 方法的用途
+ * @author evaseemefly
+ * @date 2024/04/25
+ * @param {L.Map} mymap 添加至地图
+ * @param {IIconImplement} icons icon实现类集合
+ * @returns {*}  {number[]} icon layer groupid,title layer groupid
+ */
+const addStaticsIcon2Map = (
+	mymap: L.Map,
+	icons: IIconImplement[],
+	iconType: StationIconLayerEnum,
+	callbackFunc: (stationTemp: {
+		code: string
+		name: string
+		iconType: StationIconLayerEnum
+	}) => void
+): number[] => {
+	let groupLayersIds: number[] = []
+	/**
+
+	 *
+	 *
+	 */
+	const iconArr: AbsIconCirle[] = []
+	/** icon marker 集合 */
+	const iconMarkers: L.Marker<L.DivIcon>[] = []
+
+	/** title markers 集合 */
+	const titleMarkers: L.Marker<L.DivIcon>[] = []
+	// const iconType: StationIconLayerEnum = StationIconLayerEnum.ICON_FUB
+	icons.forEach((temp) => {
+		const tempCode = temp.code
+		const tempStationName = temp.name
+
+		/** divIcon实例,用来创建实例调用 togHtml 与 getClsName */
+		const iconTitleOnly = new IconOnlyTitle(temp.name, temp.code)
+		/** 只有标题的icon */
+		const titleIcon: L.DivIcon = L.divIcon({
+			className: `surge_pulsing_icon_default ${iconTitleOnly.getClassName()}`,
+			html: iconTitleOnly.toHtml(),
+			iconAnchor: [-20, 30],
+		})
+
+		/** 站点(fub) div icon实例 */
+		const stationDivIcon = L.divIcon({
+			className: `surge_pulsing_icon_default ${temp.getClassName()}`,
+			html: temp.toHtml(),
+			// 目前需要此部分，因为会造成 位置的位移
+			// 坐标，[相对于原点的水平位置（左加右减），相对原点的垂直位置（上加下减）]
+			// iconAnchor: [-20, 30]
+		})
+		/** 站点(fub) div icon marker */
+		const stationDivIconMarker: L.Marker<L.DivIcon> = L.marker([temp.lat, temp.lon], {
+			icon: stationDivIcon,
+			// @ts-ignore
+			customData: { code: tempCode, name: tempStationName, iconType: iconType },
+			riseOnHover: true, // 鼠标移入zindex升级
+		}).on(
+			'click',
+			(e: {
+				target: {
+					options: {
+						customData: { code: string; name: string; iconType: StationIconLayerEnum }
+					}
+				}
+			}) => {
+				callbackFunc({
+					code: e.target.options.customData.code,
+					name: e.target.options.customData.name,
+					iconType: e.target.options.customData.iconType,
+				})
+			}
+		)
+		/** 只包含title的icon marker */
+		const titleIconMarker: L.Marker<L.DivIcon> = L.marker([temp.lat, temp.lon], {
+			icon: titleIcon,
+			// @ts-ignore
+			customData: { code: tempCode, name: tempStationName, iconType: iconType },
+			riseOnHover: true,
+		}).on(
+			'click',
+			(e: {
+				target: {
+					options: {
+						customData: { code: string; name: string; iconType: StationIconLayerEnum }
+					}
+				}
+			}) => {
+				callbackFunc({
+					code: e.target.options.customData.code,
+					name: e.target.options.customData.name,
+					iconType: e.target.options.customData.iconType,
+				})
+			}
+		)
+
+		iconMarkers.push(stationDivIconMarker)
+		titleMarkers.push(titleIconMarker)
+	})
+
+	/** icon layer 群组 id */
+	// @ts-ignore
+	const iconLayerGroupId: number = L.layerGroup(iconMarkers).addTo(mymap)._leaflet_id
+
+	/** title layer 群组 id */
+	// @ts-ignore
+	const titleLayerGroupId: number = L.layerGroup(titleMarkers).addTo(mymap)._leaflet_id
+
+	/** icon layer groupid,title layer groupid */
+	groupLayersIds = [iconLayerGroupId, titleLayerGroupId]
+	return groupLayersIds
+}
+
 export {
 	IconCirlePulsing,
 	DynamicIconCirle,
@@ -907,4 +1114,7 @@ export {
 	FixedStationSurgeIcon,
 	getTyIconUrlByType,
 	addStationIcon2Map,
+	addStaticsIcon2Map,
+	addFubsIcon2Map,
+	IconOnlyTitle,
 }

@@ -7,6 +7,7 @@
 					:isFinished="isFinished"
 					:stationInfoList="distStationBaseInfoList"
 					:distStationRealdataList="distStationRealdataList"
+					:fubInfoList="allFubBaseInfoList"
 				></RealdataMapView>
 			</div>
 		</div>
@@ -81,6 +82,7 @@ import moment from 'moment'
 import { MS_UNIT } from '@/const/unit'
 import { IStationInfo } from '@/interface/station'
 import { StationBaseInfoMidModel } from '@/middle_model/station'
+import { FubBaseInfoMidModel } from '@/middle_model/fub'
 import {
 	loadAllStationRealdataMaximumList,
 	loadDistAstronomictideList,
@@ -89,10 +91,12 @@ import {
 } from '@/api/surge'
 import { loadDistStationWindRealdataList } from '@/api/wind'
 import { loadDistStationBaseInfoList, loadDistStationsAlertLevelList } from '@/api/station'
+import { loadAllFubsBaseInfo } from '@/api/fub'
 
 // middle_model
 import { DistStationSurgeListMidModel } from '@/middle_model/surge'
 import { DistStationWindListMidModel } from '@/middle_model/wind'
+import { ObservationTypeEnum } from '@/enum/common'
 
 /** + 24-03-11 实况Home页 */
 @Component({
@@ -151,6 +155,12 @@ export default class RealdataHomeView extends Vue {
 	/** 海洋站名称中英文对照字典 */
 	distStationNameDicts: { name: string; chname: string; sort: number }[] = []
 
+	/** 所有浮标站点的基础信息集合 */
+	allFubBaseInfoList: FubBaseInfoMidModel[] = []
+
+	/** 所有浮标站点的 codes */
+	allFubsCodes: string[] = []
+
 	/** 控制加载遮罩 */
 	isLoading = false
 	/** 通知子组件所有异步请求均执行结束 */
@@ -168,6 +178,8 @@ export default class RealdataHomeView extends Vue {
 			this.loadDistStationBaseInfoList(),
 			this.loadDistStationRealdataExtremumList(this.issueTs, this.endTs),
 			this.loadDistStationWindRealdataList(this.issueTs, this.endTs),
+			//TODO:[*] 24-04-25 加载所有浮标站点基础信息
+			this.loadAllFubsBaseInfo(),
 		])
 			.then(() => {
 				console.log('执行所有异步请求完毕')
@@ -178,9 +190,12 @@ export default class RealdataHomeView extends Vue {
 			.finally(() => {
 				this.isFinished = true
 				this.isLoading = true
+				console.log('执行RealData final')
 			})
 			.catch(() => {
 				console.log('执行RealData -> initLoad 出现异常')
+				// this.isFinished = true
+				// this.isLoading = true
 			})
 	}
 
@@ -241,11 +256,15 @@ export default class RealdataHomeView extends Vue {
 	 * 24-03-28 bug:之前未作为 Promise<void> 出现了隐藏的bug
 	 */
 	loadDistStationRealdataExtremumList(startTs: number, endTs: number) {
-		return loadDistStationRealdataExtremumList(startTs, endTs).then((res) => {
-			if (res.status == 200) {
-				this.distStationSurgeRealdataExtremumList = res.data
-			}
-		})
+		return loadDistStationRealdataExtremumList(startTs, endTs)
+			.then((res) => {
+				if (res.status == 200) {
+					this.distStationSurgeRealdataExtremumList = res.data
+				}
+			})
+			.catch(() => {
+				console.log('loadDistStationRealdataExtremumList catch')
+			})
 	}
 
 	/** 加载所有站点实况集合 */
@@ -280,22 +299,29 @@ export default class RealdataHomeView extends Vue {
 				// this.isLoading = false
 				console.log('loadDistStationRealdataList over')
 			})
+			.catch(() => {
+				console.log('loadDistStationRealdataList catch')
+			})
 	}
 
 	/** 根据起止时间加载所有站点的风要素实况 */
 	loadDistStationWindRealdataList(startTs, endTs) {
-		return loadDistStationWindRealdataList(startTs, endTs).then((res) => {
-			if (res.status == 200) {
-				this.distStationWindRealdataList = res.data.map((temp) => {
-					return new DistStationWindListMidModel(
-						temp.station_code,
-						temp.ts_list,
-						temp.ws_list,
-						temp.dir_list
-					)
-				})
-			}
-		})
+		return loadDistStationWindRealdataList(startTs, endTs)
+			.then((res) => {
+				if (res.status == 200) {
+					this.distStationWindRealdataList = res.data.map((temp) => {
+						return new DistStationWindListMidModel(
+							temp.station_code,
+							temp.ts_list,
+							temp.ws_list,
+							temp.dir_list
+						)
+					})
+				}
+			})
+			.catch(() => {
+				console.log('loadDistStationWindRealdataList catch')
+			})
 	}
 
 	/** 加载所有站点的警戒潮位集合 */
@@ -308,6 +334,38 @@ export default class RealdataHomeView extends Vue {
 			})
 			.then(() => {
 				console.log('loadDistStationAlertlevelList over')
+			})
+			.catch(() => {
+				console.log('loadDistStationAlertlevelList catch')
+			})
+	}
+
+	/** 加载所有浮标站点基础信息集合 */
+	loadAllFubsBaseInfo(): Promise<void> {
+		return loadAllFubsBaseInfo()
+			.then((res) => {
+				if (res.status == 200) {
+					this.allFubBaseInfoList = res.data.map((tempFub) => {
+						const tempFubInstance = new FubBaseInfoMidModel(
+							tempFub.code,
+							tempFub.name,
+							tempFub.lat,
+							tempFub.lon,
+							tempFub.fub_type,
+							tempFub.fub_kind
+						)
+						return tempFubInstance
+					})
+				}
+			})
+			.then((res) => {
+				console.log('loading loadAllFubsBaseInfo end')
+			})
+			.catch(() => {
+				console.log('loading loadAllFubsBaseInfo catch')
+			})
+			.finally(() => {
+				console.log('loading loadAllFubsBaseInfo over')
 			})
 	}
 
@@ -327,6 +385,9 @@ export default class RealdataHomeView extends Vue {
 			})
 			.then(() => {
 				console.log('loadDistStationAstronomictideList over')
+			})
+			.catch(() => {
+				console.log('loadDistStationAstronomictideList catch')
 			})
 	}
 
@@ -348,6 +409,12 @@ export default class RealdataHomeView extends Vue {
 				}
 			})
 			.then(() => {
+				console.log('loadDistStationBaseInfoList end')
+			})
+			.catch(() => {
+				console.log('loadDistStationBaseInfoList catch')
+			})
+			.finally(() => {
 				console.log('loadDistStationBaseInfoList over')
 			})
 	}

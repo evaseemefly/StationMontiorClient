@@ -244,6 +244,12 @@ export const PUSH_STATIONS_CODE = 'PUSH_STATIONS_CODE'
 /** 从站点集合中删除 code */
 export const REMOVE_STATIONS_CODE = 'REMOVE_STATIONS_CODE'
 
+/** 设置 station form 的观测手段 STATION|FUB */
+export const SET_OBSERVATION_TYPE = 'SET_OBSERVATION_TYPE'
+
+/** 获取 station form 的观测手段 STATION|FUB */
+export const GET_OBSERVATION_TYPE = 'GET_OBSERVATION_TYPE'
+
 /** 设置当前PID */
 export const SET_REGION_PID = 'SET_REGION_PID'
 /** 获取当前PID */

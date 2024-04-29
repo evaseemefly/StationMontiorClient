@@ -28,6 +28,9 @@ export enum IconTypeEnum {
 	 * 台风路径示意 icon
 	 */
 	TY_PATH_ICON,
+
+	/** 浮标 icon */
+	FUB_ICON,
 }
 
 /**
@@ -78,6 +81,27 @@ export enum IExpandEnum {
 	EXPANDED,
 	/** 未选择 */
 	UN_SELECTED,
+}
+
+/**
+ * @description 观测站点类型枚举(海洋站|Fub)
+ * @author evaseemefly
+ * @date 2024/04/25
+ * @export
+ * @enum {number}
+ */
+export enum ObservationTypeEnum {
+	/** 海洋站 */
+	STATION = 600,
+
+	/** 浮标 */
+	FUB = 601,
+
+	/** 锚系浮标 */
+	MOORING_BUOY = 602,
+
+	/** 大浮标 */
+	LARGE_BUOY = 611,
 }
 
 export { getEnumVal }
