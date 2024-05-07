@@ -1,0 +1,62 @@
+import { ObservationTypeEnum } from '@/enum/common'
+
+/**
+ * 站点基础信息
+ */
+class SiteBaseInfoMidModel {
+	// rid: number
+	stationCode: string
+	stationName: string
+	lat: number
+	lon: number
+	sort = -1
+	/** 观测站点类型 : station|fub */
+	observationType: ObservationTypeEnum = ObservationTypeEnum.STATION
+
+	/**
+	 * 观测站基础信息mid model
+	 * @param code
+	 * @param name
+	 * @param lat
+	 * @param lon
+	 * @param obsType
+	 * @param sort
+	 */
+	constructor(
+		code: string,
+		name: string,
+		lat: number,
+		lon: number,
+		obsType: ObservationTypeEnum,
+		sort = -1
+	) {
+		// this.rid = rid
+		this.stationCode = code
+		this.stationName = name
+		this.lat = lat
+		this.lon = lon
+		this.observationType = obsType
+		this.sort = sort
+	}
+}
+
+/**
+ * TODO:[-] 24-05-07 + 只用来存储 code 与 observationType
+ */
+class SiteBaseDigestMidModel {
+	stationCode: string
+	/** 观测站点类型 : station|fub */
+	observationType: ObservationTypeEnum = ObservationTypeEnum.STATION
+
+	/**
+	 * 观测站摘要信息mid model
+	 * @param code
+	 * @param obsType
+	 */
+	constructor(code: string, obsType: ObservationTypeEnum) {
+		this.stationCode = code
+		this.observationType = obsType
+	}
+}
+
+export { SiteBaseInfoMidModel, SiteBaseDigestMidModel }

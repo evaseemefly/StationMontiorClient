@@ -14,9 +14,14 @@ import {
 	REMOVE_STATIONS_CODE,
 	GET_OBSERVATION_TYPE,
 	SET_OBSERVATION_TYPE,
+	GET_SITE,
+	SET_SITE,
+	PUSH_SITE,
+	REMOVE_SITE,
 } from '../types'
 import { DEFAULT_STATION_CODE } from '@/const/default'
 import { StationIconLayerEnum } from '@/enum/map'
+import { SiteBaseDigestMidModel } from '@/middle_model/site'
 interface IStation {
 	stationCode: string
 	isShowStationSurgeForm: boolean
@@ -27,6 +32,8 @@ interface IStation {
 	stationsCodes: string[]
 	/** 观测手段:StationIconLayerEnum FUB|STATION */
 	observationType: StationIconLayerEnum
+	/** 站点摘要信息集合(code,type) */
+	siteBaseInfoList: SiteBaseDigestMidModel[]
 }
 
 const state: IStation = {
@@ -38,6 +45,8 @@ const state: IStation = {
 	stationsCodes: [],
 	/** 观测手段 */
 	observationType: StationIconLayerEnum.ICON_STATION,
+	/** 站点摘要信息集合(code,type) */
+	siteBaseInfoList: [],
 }
 const getters = {
 	[GET_STATION_CODE](state: IStation): string {
@@ -57,6 +66,9 @@ const getters = {
 	},
 	[GET_OBSERVATION_TYPE](state: IStation): StationIconLayerEnum {
 		return state.observationType
+	},
+	[GET_SITE](state: IStation): SiteBaseDigestMidModel[] {
+		return state.siteBaseInfoList
 	},
 }
 // 使用dispatch调用
@@ -92,6 +104,20 @@ const mutations = {
 	},
 	[SET_OBSERVATION_TYPE](state: IStation, val: StationIconLayerEnum): void {
 		state.observationType = val
+	},
+	/** 一次性设置 site 集合 */
+	[SET_SITE](state: IStation, val: SiteBaseDigestMidModel[]): void {
+		state.siteBaseInfoList = val
+	},
+	[PUSH_SITE](state: IStation, val: SiteBaseDigestMidModel): void {
+		if (state.siteBaseInfoList.filter((s) => s.stationCode == val.stationCode).length == 0) {
+			state.siteBaseInfoList.push(val)
+		}
+	},
+	[REMOVE_SITE](state: IStation, val: SiteBaseDigestMidModel): void {
+		state.siteBaseInfoList = state.siteBaseInfoList.filter(
+			(temp) => temp.stationCode != val.stationCode
+		)
 	},
 }
 

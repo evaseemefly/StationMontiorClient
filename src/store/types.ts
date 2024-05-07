@@ -239,6 +239,16 @@ export const GET_STATIONS_CODES = 'GET_STATIONS_CODES'
 /** 修改当前选定的海洋站 code 集合(全部) */
 export const SET_STATIONS_CODES = 'SET_STATIONS_CODES'
 
+/** 获取当前选定的站点 site 集合 */
+export const GET_SITE = 'GET_SITE'
+/** 一次性修改当前站点 site 集合 */
+export const SET_SITE = 'SET_SITE'
+
+/** 向站点集合(含 station|fub)推送site */
+export const PUSH_SITE = 'PUSH_SITE'
+/** 从站点集合按照 code 删除对应的 site 对象 */
+export const REMOVE_SITE = 'REMOVE_SITE'
+
 /** 向选定站点集合中push code */
 export const PUSH_STATIONS_CODE = 'PUSH_STATIONS_CODE'
 /** 从站点集合中删除 code */

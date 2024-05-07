@@ -31,6 +31,9 @@ export enum IconTypeEnum {
 
 	/** 浮标 icon */
 	FUB_ICON,
+
+	/** 海洋站静态 icon */
+	STATION_STATICS_ICON,
 }
 
 /**
@@ -93,6 +96,9 @@ export enum IExpandEnum {
 export enum ObservationTypeEnum {
 	/** 海洋站 */
 	STATION = 600,
+
+	/** 水利部海洋站 */
+	STATION_IRRIGATION = 603,
 
 	/** 浮标 */
 	FUB = 601,

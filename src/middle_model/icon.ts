@@ -6,7 +6,7 @@
 
 import * as L from 'leaflet'
 
-import { IconTypeEnum, StationIconShowTypeEnum } from '@/enum/common'
+import { IconTypeEnum, ObservationTypeEnum, StationIconShowTypeEnum } from '@/enum/common'
 // 待实现的接口
 import { IStationInfo, IStationIcon } from '@/interface/station'
 import { IToHtml } from '@/interface/leaflet_icon'
@@ -18,6 +18,8 @@ import { getDateDiffMs } from '@/util/dateUtil'
 import { IIconImplement } from '@/interface/leaflet_icon'
 import { FubBaseInfoMidModel } from './fub'
 import { StationIconLayerEnum } from '@/enum/map'
+import { SiteBaseInfoMidModel } from './site'
+import { formatObservationTypeEnum2IconTypeEnum } from '@/util/format'
 
 interface IIconPlusingOptions {
 	val?: number
@@ -960,11 +962,7 @@ const addStationIcon2Map = (
 const addFubsIcon2Map = (
 	mymap: L.Map,
 	fubList: FubBaseInfoMidModel[],
-	callbackFunc: (stationTemp: {
-		code: string
-		name: string
-		iconType: StationIconLayerEnum
-	}) => void
+	callbackFunc: (stationTemp: { code: string; name: string; iconType: IconTypeEnum }) => void
 ): void => {
 	const icons: IIconImplement[] = []
 	for (const fub of fubList) {
@@ -974,6 +972,28 @@ const addFubsIcon2Map = (
 			fub.lat,
 			fub.lon,
 			IconTypeEnum.FUB_ICON
+		)
+		icons.push(tempIcon)
+	}
+	addStaticsIcon2Map(mymap, icons, StationIconLayerEnum.ICON_FUB, callbackFunc)
+}
+
+/** 添加静态站点( station|fub )至地图中 */
+const addStaticSitesIcon2Map = (
+	mymap: L.Map,
+	sitesList: SiteBaseInfoMidModel[],
+	callbackFunc: (stationTemp: { code: string; name: string; iconType: IconTypeEnum }) => void
+): void => {
+	const icons: IIconImplement[] = []
+	for (const tempSite of sitesList) {
+		let tempIconType: IconTypeEnum = IconTypeEnum.STATION_STATICS_ICON
+		tempIconType = formatObservationTypeEnum2IconTypeEnum(tempSite.observationType)
+		const tempIcon: IconStaticsCirle = new IconStaticsCirle(
+			tempSite.stationCode,
+			tempSite.stationName,
+			tempSite.lat,
+			tempSite.lon,
+			tempIconType
 		)
 		icons.push(tempIcon)
 	}
@@ -1001,11 +1021,7 @@ const addStaticsIcon2Map = (
 	mymap: L.Map,
 	icons: IIconImplement[],
 	iconType: StationIconLayerEnum,
-	callbackFunc: (stationTemp: {
-		code: string
-		name: string
-		iconType: StationIconLayerEnum
-	}) => void
+	callbackFunc: (stationTemp: { code: string; name: string; iconType: IconTypeEnum }) => void
 ): number[] => {
 	let groupLayersIds: number[] = []
 	/**
@@ -1023,6 +1039,7 @@ const addStaticsIcon2Map = (
 	icons.forEach((temp) => {
 		const tempCode = temp.code
 		const tempStationName = temp.name
+		const tempIconType = temp.iconType
 
 		/** divIcon实例,用来创建实例调用 togHtml 与 getClsName */
 		const iconTitleOnly = new IconOnlyTitle(temp.name, temp.code)
@@ -1045,14 +1062,14 @@ const addStaticsIcon2Map = (
 		const stationDivIconMarker: L.Marker<L.DivIcon> = L.marker([temp.lat, temp.lon], {
 			icon: stationDivIcon,
 			// @ts-ignore
-			customData: { code: tempCode, name: tempStationName, iconType: iconType },
+			customData: { code: tempCode, name: tempStationName, iconType: tempIconType },
 			riseOnHover: true, // 鼠标移入zindex升级
 		}).on(
 			'click',
 			(e: {
 				target: {
 					options: {
-						customData: { code: string; name: string; iconType: StationIconLayerEnum }
+						customData: { code: string; name: string; iconType: IconTypeEnum }
 					}
 				}
 			}) => {
@@ -1067,14 +1084,14 @@ const addStaticsIcon2Map = (
 		const titleIconMarker: L.Marker<L.DivIcon> = L.marker([temp.lat, temp.lon], {
 			icon: titleIcon,
 			// @ts-ignore
-			customData: { code: tempCode, name: tempStationName, iconType: iconType },
+			customData: { code: tempCode, name: tempStationName, iconType: tempIconType },
 			riseOnHover: true,
 		}).on(
 			'click',
 			(e: {
 				target: {
 					options: {
-						customData: { code: string; name: string; iconType: StationIconLayerEnum }
+						customData: { code: string; name: string; iconType: IconTypeEnum }
 					}
 				}
 			}) => {
@@ -1117,4 +1134,5 @@ export {
 	addStaticsIcon2Map,
 	addFubsIcon2Map,
 	IconOnlyTitle,
+	addStaticSitesIcon2Map,
 }

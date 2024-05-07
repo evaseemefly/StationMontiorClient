@@ -8,6 +8,7 @@
 					:stationInfoList="distStationBaseInfoList"
 					:distStationRealdataList="distStationRealdataList"
 					:fubInfoList="allFubBaseInfoList"
+					:sitesInfoList="allSites"
 				></RealdataMapView>
 			</div>
 		</div>
@@ -73,7 +74,7 @@ import {
 	GET_END_DT,
 	GET_START_DT,
 } from '@/store/types'
-import { LayerTypeEnum } from '@/enum/map'
+import { LayerTypeEnum, StationIconLayerEnum } from '@/enum/map'
 // interface
 import { IHttpResponse } from '@/interface/common'
 // api
@@ -82,6 +83,7 @@ import moment from 'moment'
 import { MS_UNIT } from '@/const/unit'
 import { IStationInfo } from '@/interface/station'
 import { StationBaseInfoMidModel } from '@/middle_model/station'
+import { SiteBaseInfoMidModel } from '@/middle_model/site'
 import { FubBaseInfoMidModel } from '@/middle_model/fub'
 import {
 	loadAllStationRealdataMaximumList,
@@ -158,6 +160,9 @@ export default class RealdataHomeView extends Vue {
 	/** 所有浮标站点的基础信息集合 */
 	allFubBaseInfoList: FubBaseInfoMidModel[] = []
 
+	/** 所有站点(含:station|fub) */
+	allSites: SiteBaseInfoMidModel[] = []
+
 	/** 所有浮标站点的 codes */
 	allFubsCodes: string[] = []
 
@@ -170,12 +175,14 @@ export default class RealdataHomeView extends Vue {
 	async initLoad() {
 		this.isLoading = false
 		this.isFinished = false
+		this.allSites = []
+		this.allFubsCodes = []
 		// 一次性加载所有所需异步请求
 		return Promise.all([
 			this.loadDistStationSurgeRealdataList(this.issueTs, this.endTs),
 			this.loadDistStationAlertlevelList(),
 			this.loadDistStationAstronomictideList(this.issueTs, this.endTs),
-			this.loadDistStationBaseInfoList(),
+			this.loadAllStationBaseInfoList(),
 			this.loadDistStationRealdataExtremumList(this.issueTs, this.endTs),
 			this.loadDistStationWindRealdataList(this.issueTs, this.endTs),
 			//TODO:[*] 24-04-25 加载所有浮标站点基础信息
@@ -342,10 +349,11 @@ export default class RealdataHomeView extends Vue {
 
 	/** 加载所有浮标站点基础信息集合 */
 	loadAllFubsBaseInfo(): Promise<void> {
+		let that = this
 		return loadAllFubsBaseInfo()
 			.then((res) => {
 				if (res.status == 200) {
-					this.allFubBaseInfoList = res.data.map((tempFub) => {
+					res.data.forEach((tempFub) => {
 						const tempFubInstance = new FubBaseInfoMidModel(
 							tempFub.code,
 							tempFub.name,
@@ -354,8 +362,27 @@ export default class RealdataHomeView extends Vue {
 							tempFub.fub_type,
 							tempFub.fub_kind
 						)
-						return tempFubInstance
+						const tempSite: SiteBaseInfoMidModel = new SiteBaseInfoMidModel(
+							tempFub.code,
+							tempFub.name,
+							tempFub.lat,
+							tempFub.lon,
+							ObservationTypeEnum.FUB
+						)
+						that.allSites.push(tempSite)
+						that.allFubBaseInfoList.push(tempFubInstance)
 					})
+					// this.allFubBaseInfoList = res.data.map((tempFub) => {
+					// 	const tempFubInstance = new FubBaseInfoMidModel(
+					// 		tempFub.code,
+					// 		tempFub.name,
+					// 		tempFub.lat,
+					// 		tempFub.lon,
+					// 		tempFub.fub_type,
+					// 		tempFub.fub_kind
+					// 	)
+					// 	return tempFubInstance
+					// })
 				}
 			})
 			.then((res) => {
@@ -392,12 +419,22 @@ export default class RealdataHomeView extends Vue {
 	}
 
 	/** 加载所有站点的基础信息集合 */
-	loadDistStationBaseInfoList() {
+	loadAllStationBaseInfoList() {
+		const that = this
 		return loadDistStationBaseInfoList()
 			.then((res) => {
 				if (res.status == 200) {
-					this.distStationBaseInfoList = res.data.map((temp) => {
-						return new StationBaseInfoMidModel(
+					// this.distStationBaseInfoList =
+					res.data.map((temp) => {
+						// return new StationBaseInfoMidModel(
+						// 	temp.pid,
+						// 	temp.code,
+						// 	temp.name,
+						// 	temp.lat,
+						// 	temp.lon,
+						// 	temp.sort
+						// )
+						const tempStationInstance = new StationBaseInfoMidModel(
 							temp.pid,
 							temp.code,
 							temp.name,
@@ -405,17 +442,26 @@ export default class RealdataHomeView extends Vue {
 							temp.lon,
 							temp.sort
 						)
+						this.distStationBaseInfoList.push(tempStationInstance)
+						const tempSite: SiteBaseInfoMidModel = new SiteBaseInfoMidModel(
+							temp.code,
+							temp.name,
+							temp.lat,
+							temp.lon,
+							ObservationTypeEnum.STATION
+						)
+						that.allSites.push(tempSite)
 					})
 				}
 			})
 			.then(() => {
-				console.log('loadDistStationBaseInfoList end')
+				console.log('loadAllStationBaseInfoList end')
 			})
 			.catch(() => {
-				console.log('loadDistStationBaseInfoList catch')
+				console.log('loadAllStationBaseInfoList catch')
 			})
 			.finally(() => {
-				console.log('loadDistStationBaseInfoList over')
+				console.log('loadAllStationBaseInfoList over')
 			})
 	}
 

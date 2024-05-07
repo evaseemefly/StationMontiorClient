@@ -79,7 +79,12 @@ import { MapMixin } from '@/views/map/mixin/mapMixin'
 import { FilterTyMidModel, TyRealDataMongoMidModel } from '@/middle_model/typhoon'
 import { ISearchTyStationParams } from '@/middle_model/api_params'
 import { TyphoonCircleStatus, TyCMAPathLine } from '@/middle_model/leaflet_plugin'
-import { addFubsIcon2Map, addStationIcon2Map, IconTyphoonCirlePulsing } from '@/middle_model/icon'
+import {
+	addFubsIcon2Map,
+	addStaticSitesIcon2Map,
+	addStationIcon2Map,
+	IconTyphoonCirlePulsing,
+} from '@/middle_model/icon'
 // 接口类
 import { IStationIcon, IStationInfo } from '@/interface/station'
 import { IHttpResponse } from '@/interface/common'
@@ -113,6 +118,7 @@ import {
 	SET_STATIONS_BASEINFO_LIST,
 	PUSH_STATIONS_CODE,
 	SET_OBSERVATION_TYPE,
+	PUSH_SITE,
 } from '@/store/types'
 // 默认常量
 import {
@@ -131,7 +137,12 @@ import {
 	DEFAULT_TIMESTAMP,
 } from '@/const/default'
 // enum
-import { IconTypeEnum, ScalarShowTypeEnum, StationIconShowTypeEnum } from '@/enum/common'
+import {
+	IconTypeEnum,
+	ObservationTypeEnum,
+	ScalarShowTypeEnum,
+	StationIconShowTypeEnum,
+} from '@/enum/common'
 import { MenuType, TyScatterMenuType } from '@/enum/menu'
 import { LayerTypeEnum, MapLayerEnum, RasterLayerEnum, StationIconLayerEnum } from '@/enum/map'
 
@@ -195,6 +206,12 @@ import { IScale } from '@/const/colorBar'
 import { getIntegerList } from '@/util/math'
 import { DistStationSurgeListMidModel } from '@/middle_model/surge'
 import { FubBaseInfoMidModel } from '@/middle_model/fub'
+import { SiteBaseDigestMidModel, SiteBaseInfoMidModel } from '@/middle_model/site'
+import {
+	formatIconTypeEnum2ObservationTypeEnum,
+	formatStationIconLayerEnum2IconTypeEnum,
+	formatStationIconLayerEnum2ObservationTypeEnum,
+} from '@/util/format'
 
 /**
  * 实况 map view
@@ -254,6 +271,10 @@ export default class RealdataMapView extends Vue {
 	/** + 24-03-29 由 RealdataHomeView 父组件 => 站点实况集合，在地图中进行加载 */
 	@Prop({ type: Array, default: () => [] })
 	distStationRealdataList: DistStationSurgeListMidModel[]
+
+	/** + 24-05-06 所有站点信息(含：fub|station) */
+	@Prop({ type: Array, default: () => [] })
+	sitesInfoList: SiteBaseInfoMidModel[]
 
 	@Prop({ type: Boolean, default: false })
 	isFinished: boolean
@@ -330,6 +351,25 @@ export default class RealdataMapView extends Vue {
 		this.setShowStationSurgeForm(true)
 		this.setObservationType(obsType)
 	}
+
+	/** TODO:[-] 24-05-06 新加入的显示站点(fub|station)两种类型的实况数据——显示内容不同 */
+	private loadSiteAndShow(
+		code: string,
+		obsType: ObservationTypeEnum = ObservationTypeEnum.STATION
+	): void {
+		// this.setStationCode(code)
+		this.pushStationsCodes(code)
+		// TODO:[*] 24-05-07 测试一下将SiteBaseDigestMidModel类型push至vuex数组中
+		// console.log(')')
+
+		this.pushSite(new SiteBaseDigestMidModel(code, obsType))
+		this.setShowStationSurgeForm(true)
+		// this.setObservationType(obsType)
+	}
+
+	/** 添加当前 site */
+	@Mutation(PUSH_SITE, { namespace: 'station' })
+	pushSite: { (val: SiteBaseDigestMidModel): void }
 
 	/** 设置台风的时间间隔步长 */
 	@Mutation(SET_DATE_STEP, { namespace: 'common' }) setDateStep
@@ -501,12 +541,30 @@ export default class RealdataMapView extends Vue {
 	addDistFubs2Map() {
 		const mymap: L.Map = this.$refs.basemap['mapObject']
 		const that = this
+
 		addFubsIcon2Map(
 			mymap,
 			this.fubInfoList,
-			(msg: { code: string; name: string; iconType: StationIconLayerEnum }) => {
+			(msg: { code: string; name: string; iconType: IconTypeEnum }) => {
 				console.log(`当前点击了code:${msg.code},name:${msg.name},layerType:${msg.iconType}`)
-				that.loadStationAndShow(msg.code, msg.iconType)
+
+				that.loadStationAndShow(msg.code)
+			}
+		)
+	}
+
+	/** TODO:[-] 24-05-06 添加所有站点(sites: station|fub)至地图中 */
+	addAllSites2Map() {
+		const mymap: L.Map = this.$refs.basemap['mapObject']
+		const that = this
+		addStaticSitesIcon2Map(
+			mymap,
+			this.sitesInfoList,
+			(msg: { code: string; name: string; iconType: IconTypeEnum }) => {
+				console.log(`当前点击了code:${msg.code},name:${msg.name},layerType:${msg.iconType}`)
+				/** 当前site的站点类型 */
+				const obsType = formatIconTypeEnum2ObservationTypeEnum(msg.iconType)
+				that.loadSiteAndShow(msg.code, obsType)
 			}
 		)
 	}
@@ -514,8 +572,10 @@ export default class RealdataMapView extends Vue {
 	@Watch('isFinished')
 	onIsFinished(val: boolean) {
 		if (val) {
-			this.addDistStationTotalSurge2Map()
-			this.addDistFubs2Map()
+			// this.addDistStationTotalSurge2Map()
+			// this.addDistFubs2Map()
+			// TODO:[-] 24-05-06 添加所有站点至地图，包含 station 与 fub
+			this.addAllSites2Map()
 		}
 	}
 
