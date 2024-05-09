@@ -34,4 +34,54 @@ const loadAllFubsBaseInfo = (): Promise<
 	})
 }
 
-export { loadAllFubsBaseInfo }
+/**
+ * @description 获取制定浮标的实况数据(整点)
+ * @author evaseemefly
+ * @date 2024/05/08
+ * @param {string} codes
+ * @param {number} startTs
+ * @param {number} endTs
+ * @returns {*}  {Promise<
+ * 	AxiosResponse<
+ * 		{
+ * 			code: string
+ * 			observation_list: {
+ * 				station_code: string
+ * 				element_type: ObservationTypeEnum
+ * 				ts_list: number[]
+ * 				val_list: number[]
+ * 			}[]
+ * 		}[]
+ * 	>
+ * >}
+ */
+const loadFubsRealdataPerclock = (
+	codes: string[],
+	startTs: number,
+	endTs: number
+): Promise<
+	AxiosResponse<
+		{
+			code: string
+			observation_list: {
+				station_code: string
+				element_type: ObservationTypeEnum
+				ts_list: number[]
+				val_list: number[]
+			}[]
+		}[]
+	>
+> => {
+	const url = `${host}${area}/realtime/many/perclock/`
+	return axios.get(url, {
+		headers: authHeader(),
+		params: {
+			start_ts: startTs,
+			end_ts: endTs,
+			// station_codes: '' + codes,
+			station_codes: codes,
+		},
+	})
+}
+
+export { loadAllFubsBaseInfo, loadFubsRealdataPerclock }

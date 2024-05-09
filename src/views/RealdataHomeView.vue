@@ -73,6 +73,7 @@ import {
 	GET_TIMESPAN,
 	GET_END_DT,
 	GET_START_DT,
+	GET_SITE,
 } from '@/store/types'
 import { LayerTypeEnum, StationIconLayerEnum } from '@/enum/map'
 // interface
@@ -83,8 +84,9 @@ import moment from 'moment'
 import { MS_UNIT } from '@/const/unit'
 import { IStationInfo } from '@/interface/station'
 import { StationBaseInfoMidModel } from '@/middle_model/station'
-import { SiteBaseInfoMidModel } from '@/middle_model/site'
+import { SiteBaseDigestMidModel, SiteBaseInfoMidModel } from '@/middle_model/site'
 import { FubBaseInfoMidModel } from '@/middle_model/fub'
+import { ObserveValueMidModel } from '@/middle_model/obs'
 import {
 	loadAllStationRealdataMaximumList,
 	loadDistAstronomictideList,
@@ -94,6 +96,7 @@ import {
 import { loadDistStationWindRealdataList } from '@/api/wind'
 import { loadDistStationBaseInfoList, loadDistStationsAlertLevelList } from '@/api/station'
 import { loadAllFubsBaseInfo } from '@/api/fub'
+import { loadSitesRealdataListPerclock } from '@/api/realdata'
 
 // middle_model
 import { DistStationSurgeListMidModel } from '@/middle_model/surge'
@@ -159,6 +162,9 @@ export default class RealdataHomeView extends Vue {
 
 	/** 所有浮标站点的基础信息集合 */
 	allFubBaseInfoList: FubBaseInfoMidModel[] = []
+
+	/** TODO:[-] 24-05-08 所有站点的各要素集合 */
+	allSiteRealdataList: ObserveValueMidModel[] = []
 
 	/** 所有站点(含:station|fub) */
 	allSites: SiteBaseInfoMidModel[] = []
@@ -418,6 +424,38 @@ export default class RealdataHomeView extends Vue {
 			})
 	}
 
+	/** TODO:[-] 24-05-07 加载指定站点的实况 */
+	loadSitesRealdata(sites: SiteBaseDigestMidModel[], startTs: number, endTs: number) {
+		/**
+		 * 1- 获取传入的 sites 共有集中 观测站位类型(station|fub)
+		 * 2- 根据不同的观测站位类型批量请求
+		 * 3- 将返回的结果写入 allSiteRealdataList
+		 */
+
+		// 1- 获取传入的 sites 共有集中 观测站位类型(station|fub)
+		const obsTypeSet = new Set(
+			sites.map((s) => {
+				return s.observationType
+			})
+		)
+		// 2- 根据不同的观测站位类型批量请求
+		for (const tempType of obsTypeSet) {
+			const codes = sites
+				.filter((temp) => {
+					return temp.observationType == tempType
+				})
+				.map((site) => {
+					return site.stationCode
+				})
+			// 2-2 批量获取 站位对应的实况
+			loadSitesRealdataListPerclock(tempType, codes, startTs, endTs).then((res) => {
+				if (res.status == 200) {
+					console.log(res.data)
+				}
+			})
+		}
+	}
+
 	/** 加载所有站点的基础信息集合 */
 	loadAllStationBaseInfoList() {
 		const that = this
@@ -475,6 +513,15 @@ export default class RealdataHomeView extends Vue {
 		const { getStartDt, getEndDt } = this
 		return { getStartDt, getEndDt }
 	}
+
+	@Watch('getSites')
+	onSites(val: SiteBaseDigestMidModel[]) {
+		this.loadSitesRealdata(val, this.issueTs, this.endTs)
+	}
+
+	/** 获取当前选定的站点 */
+	@Getter(GET_SITE, { namespace: 'station' })
+	getSites: SiteBaseDigestMidModel[]
 
 	@Watch('DtOpts')
 	onDtOp(val: { getStartDt: Date; getEndDt: Date }) {
