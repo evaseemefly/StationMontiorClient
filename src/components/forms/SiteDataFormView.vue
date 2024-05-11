@@ -15,10 +15,10 @@
 							item.disabled ? 'disabled' : '',
 						]"
 						:key="index"
-						@click="commitCode(item.code)"
-						v-for="(item, index) in subTitles"
+						@click="commitSite(item)"
+						v-for="(item, index) in sites"
 					>
-						{{ item.title }}
+						{{ item.code }}
 					</div>
 				</div>
 				<div class="thumb-btn" @click="setExpanded(false)">
@@ -27,17 +27,7 @@
 				<!-- <div class="my-sub-title right" @click="setExpanded()">最小化</div> -->
 			</div>
 			<div class="detail-content">
-				<StationDataChart
-					:tideList="tideList"
-					:surgeList="surgeList"
-					:tsList="tsList"
-					:isFinished="isChildFinished"
-					:stationCode="selectedCode"
-					:alertLevels="alertlevelList"
-					:stationName="subTitle"
-					:wdList="wdList"
-					:wsList="wsList"
-				></StationDataChart>
+				<FubDataChart :obsVals="obsVals"></FubDataChart>
 			</div>
 		</div>
 	</div>
@@ -48,6 +38,7 @@ import { Component, Prop, Vue, Watch } from 'vue-property-decorator'
 import { Getter, Mutation, State, namespace } from 'vuex-class'
 
 import StationDataChart from '@/components/charts/StationDataChart.vue'
+import FubDataChart from '@/components/charts/FubDataChart.vue'
 import {
 	GET_SHOW_STATION_SURGE_FORM,
 	GET_STATIONS_CODES,
@@ -58,9 +49,11 @@ import { DEFAULT_STATION_CODE, DEFAULT_STATION_NAME } from '@/const/default'
 import { AlertTideEnum } from '@/enum/surge'
 import { DistStationWindListMidModel } from '@/middle_model/wind'
 import { ObservationTypeEnum } from '@/enum/common'
+import { ObserveElementMidModel, ObserveValueMidModel } from '@/middle_model/obs'
+import { SiteBaseDigestMidModel } from '@/middle_model/site'
 /** + 24-03-21 海洋站数据显示form 包含 tabs 以及 charts 组件 */
-@Component({ components: { StationDataChart } })
-export default class StationDataFormView extends Vue {
+@Component({ components: { StationDataChart, FubDataChart } })
+export default class SiteDataFormView extends Vue {
 	/** 当前选中的站点 code */
 	selectedCode: string = DEFAULT_STATION_CODE
 
@@ -77,6 +70,12 @@ export default class StationDataFormView extends Vue {
 
 	/** 副标题名称(当前选中的站点name) */
 	subTitle = DEFAULT_STATION_NAME
+
+	/** 当前选定站位的观测要素集合 */
+	obsVals: ObserveElementMidModel[] = []
+
+	/** 当前选定的站位 */
+	selectedSite: SiteBaseDigestMidModel = null
 
 	/** 当前 selectedCode 对应的数据集合 */
 	stationMergeDataList: {
@@ -111,6 +110,9 @@ export default class StationDataFormView extends Vue {
 		alert_tide_list: number[]
 		alert_level_list: number[]
 	}[]
+
+	@Prop({ type: Array, default: () => [] })
+	allSiteRealdataList: ObserveValueMidModel[]
 
 	/** 由RealdataHomeView 统一传递进本组件 */
 	@Prop({ type: Array, default: [] })
@@ -164,6 +166,15 @@ export default class StationDataFormView extends Vue {
 		}
 	}
 
+	/** 选定当前站位 */
+	commitSite(val: SiteBaseDigestMidModel): void {
+		const siteRealdata = this.allSiteRealdataList.filter((t) => t.code === val.stationCode)
+		this.selectedSite = val
+		if (siteRealdata.length > 0) {
+			this.obsVals = siteRealdata[0].obsVals
+		}
+	}
+
 	@Getter(GET_STATIONS_CODES, { namespace: 'station' }) getCodes: string[]
 
 	@Watch('getCodes')
@@ -178,6 +189,16 @@ export default class StationDataFormView extends Vue {
 		// TODO:[-] 24-04-01 重新加载code后，默认选中最后一个code
 		const lastCode = val[val.length - 1]
 		this.commitCode(lastCode)
+	}
+
+	/** 当前站点 */
+	get sites(): SiteBaseDigestMidModel[] {
+		let sites: SiteBaseDigestMidModel[] = []
+		sites = this.allSiteRealdataList.map((s) => {
+			return new SiteBaseDigestMidModel(s.code, s.obsType)
+			// return { code: s.code, obsType: s.obsType }
+		})
+		return sites
 	}
 
 	/** 监听当前选中 code

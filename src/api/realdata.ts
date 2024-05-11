@@ -3,6 +3,7 @@ import { host } from './common'
 import authHeader from './auth_header'
 import { ObservationTypeEnum } from '@/enum/common'
 import { loadFubsRealdataPerclock } from './fub'
+import { ObserveElementEnum } from '@/enum/element'
 
 // 后端的请求地址及端口
 // export const host = host
@@ -27,9 +28,10 @@ const loadSitesRealdataListPerclock = (
 	AxiosResponse<
 		{
 			code: string
+			obs_type: ObservationTypeEnum
 			observation_list: {
 				station_code: string
-				element_type: ObservationTypeEnum
+				element_type: ObserveElementEnum
 				ts_list: number[]
 				val_list: number[]
 			}[]

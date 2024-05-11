@@ -11,6 +11,7 @@ import { LayerTypeEnum } from '@/enum/map'
 import { getDateDiffMs } from '@/util/dateUtil'
 import chroma from 'chroma-js'
 import { AlertTideEnum } from '@/enum/surge'
+import { ObserveElementEnum } from '@/enum/element'
 /**
  * 将时间转换为指定的格式(str)
  *
@@ -294,6 +295,14 @@ const filterWindColorStr = (val: number): string => {
 	return colorStr
 }
 
+const filterBPColorStr = (val: number): string => {
+	const scale = chroma
+		.scale(['#153C83', '#4899D9', '#FFFB58', '#F1C712', '#E79325', '#F22015', '#C40E0F'])
+		.domain([1000, 990, 980, 970, 960, 950])
+	const colorStr = scale(val).hex()
+	return colorStr
+}
+
 /**
  * @description 根据传入的四色警戒潮位与当前总潮位值获取对应的颜色
  * @author evaseemefly
@@ -525,6 +534,46 @@ const formatContry2Str = (val: {
 	return '-'
 }
 
+/**
+ * @description 根据观测要素获取对应的名称
+ * @author evaseemefly
+ * @date 2024/05/10
+ * @param {ObserveElementEnum} val
+ * @returns {*}  {string}
+ */
+const formatObsType2Name = (val: ObserveElementEnum): string => {
+	let name = ''
+	switch (val) {
+		case ObserveElementEnum.WS:
+			name = '风速'
+			break
+		case ObserveElementEnum.AT:
+			name = '气温'
+			break
+		case ObserveElementEnum.BG:
+			name = '平均波高'
+			break
+		case ObserveElementEnum.BP:
+			name = '气压'
+			break
+		case ObserveElementEnum.WD:
+			name = '风向'
+			break
+		case ObserveElementEnum.YZQ:
+			name = '有效波周期'
+			break
+		case ObserveElementEnum.WSM:
+			name = '最大风速'
+			break
+		case ObserveElementEnum.YBG:
+			name = '有效波高'
+			break
+		default:
+			break
+	}
+	return name
+}
+
 export {
 	fortmatData2YMDHM,
 	formatOnlyFirstCol,
@@ -557,4 +606,6 @@ export {
 	filterAlertSurgeColorStr,
 	filterAlertTitle,
 	filterAlertColorStr,
+	formatObsType2Name,
+	filterBPColorStr,
 }

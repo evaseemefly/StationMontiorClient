@@ -131,6 +131,7 @@ import {
 import { DEFAULT_SURGE_TD_STEP, DEFAULT_VAL } from '@/const/default'
 import { AlertTideEnum } from '@/enum/surge'
 import { MS_UNIT } from '@/const/unit'
+import { ObserveElementEnum } from '@/enum/element'
 /** 风暴潮 tab */
 @Component({ filters: { formatDir2Int, formatSurgeFixed2Str, formatDate2DayHM, formatTs2DayHM } })
 export default class SurgeValsTableInLand extends Vue {

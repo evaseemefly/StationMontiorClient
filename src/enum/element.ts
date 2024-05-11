@@ -23,4 +23,12 @@ enum ObserveElementEnum {
 	YZQ,
 }
 
-export { ObserveElementEnum }
+/** 将观测要素分为: 风|气压|波
+ */
+enum WeatherKindEnum {
+	WIND,
+	AIRPRESSURE,
+	WAVE,
+}
+
+export { ObserveElementEnum, WeatherKindEnum }

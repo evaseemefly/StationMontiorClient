@@ -16,7 +16,8 @@
 		<div class="layout-bottom"><RealdataSubNavMenuView></RealdataSubNavMenuView></div>
 		<DisplayTabsView :maxCount="5"></DisplayTabsView>
 		<!-- <WaveGridForecastDataFormView></WaveGridForecastDataFormView> -->
-		<StationDataFormView
+		<!-- TODO:[-] 24-05-10 暂时不使用 -->
+		<!-- <StationDataFormView
 			:isFinished="isFinished"
 			:distStationAstronmictideList="distStationAstronmictideList"
 			:distStationRealdataList="distStationRealdataList"
@@ -24,7 +25,17 @@
 			:distStationBaseInfoList="distStationBaseInfoList"
 			:distStationWindRealdataList="distStationWindRealdataList"
 			:distStationNameDicts="distStationNameDicts"
-		></StationDataFormView>
+		></StationDataFormView> -->
+		<SiteDataFormView
+			:isFinished="isFinished"
+			:distStationAstronmictideList="distStationAstronmictideList"
+			:distStationRealdataList="distStationRealdataList"
+			:distStationsAlertlevelList="distStationsAlertlevelList"
+			:distStationBaseInfoList="distStationBaseInfoList"
+			:distStationWindRealdataList="distStationWindRealdataList"
+			:distStationNameDicts="distStationNameDicts"
+			:allSiteRealdataList="allSiteRealdataList"
+		></SiteDataFormView>
 		<!-- <div><StationTideFormView></StationTideFormView></div> -->
 		<StationBreviaryListView
 			:isLoading="isLoading"
@@ -57,6 +68,7 @@ import HeaderLogoView from '@/components/header/headerLogoView.vue'
 import WdLegendListView from '@/components/toolsBar/wdLegendListView.vue'
 import WaveGridForecastDataFormView from '@/components/forms/WaveGridForecastDataForm.vue'
 import StationDataFormView from '@/components/forms/StationDataFormView.vue'
+import SiteDataFormView from '@/components/forms/SiteDataFormView.vue'
 import StationBreviaryListView from '@/components/table/stationBreviaryListView.vue'
 import StationSurgeDataFormView from '@/components/forms/StationSurgeDataFormView.vue'
 import RegionStatisticsCard from '@/components/cards/regionStatisticsCard.vue'
@@ -86,7 +98,7 @@ import { IStationInfo } from '@/interface/station'
 import { StationBaseInfoMidModel } from '@/middle_model/station'
 import { SiteBaseDigestMidModel, SiteBaseInfoMidModel } from '@/middle_model/site'
 import { FubBaseInfoMidModel } from '@/middle_model/fub'
-import { ObserveValueMidModel } from '@/middle_model/obs'
+import { ObserveElementMidModel, ObserveValueMidModel } from '@/middle_model/obs'
 import {
 	loadAllStationRealdataMaximumList,
 	loadDistAstronomictideList,
@@ -119,6 +131,7 @@ import { ObservationTypeEnum } from '@/enum/common'
 		StationBreviaryListView,
 		RealdataMapView,
 		DisplayTabsView,
+		SiteDataFormView,
 	},
 })
 export default class RealdataHomeView extends Vue {
@@ -426,6 +439,8 @@ export default class RealdataHomeView extends Vue {
 
 	/** TODO:[-] 24-05-07 加载指定站点的实况 */
 	loadSitesRealdata(sites: SiteBaseDigestMidModel[], startTs: number, endTs: number) {
+		let that = this
+		that.allSiteRealdataList = []
 		/**
 		 * 1- 获取传入的 sites 共有集中 观测站位类型(station|fub)
 		 * 2- 根据不同的观测站位类型批量请求
@@ -451,6 +466,26 @@ export default class RealdataHomeView extends Vue {
 			loadSitesRealdataListPerclock(tempType, codes, startTs, endTs).then((res) => {
 				if (res.status == 200) {
 					console.log(res.data)
+					res.data.map((s) => {
+						const tempCode: string = s.code
+						const tempObsType: ObservationTypeEnum = s.obs_type
+						const tempObsValues: ObserveElementMidModel[] = s.observation_list.map(
+							(o) => {
+								return new ObserveElementMidModel(
+									o.station_code,
+									o.element_type,
+									o.ts_list,
+									o.val_list
+								)
+							}
+						)
+						const obsValMid = new ObserveValueMidModel(
+							tempCode,
+							tempObsType,
+							tempObsValues
+						)
+						that.allSiteRealdataList.push(obsValMid)
+					})
 				}
 			})
 		}
