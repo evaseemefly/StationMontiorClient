@@ -18,7 +18,7 @@
 						@click="commitSite(item)"
 						v-for="(item, index) in sites"
 					>
-						{{ item.code }}
+						{{ item.name }}
 					</div>
 				</div>
 				<div class="thumb-btn" @click="setExpanded(false)">
@@ -45,7 +45,7 @@ import {
 	SET_SHOW_STATION_SURGE_FORM,
 } from '@/store/types'
 import { DistStationSurgeListMidModel } from '@/middle_model/surge'
-import { DEFAULT_STATION_CODE, DEFAULT_STATION_NAME } from '@/const/default'
+import { DEFAULT_SITE_NAME, DEFAULT_STATION_CODE, DEFAULT_STATION_NAME } from '@/const/default'
 import { AlertTideEnum } from '@/enum/surge'
 import { DistStationWindListMidModel } from '@/middle_model/wind'
 import { ObservationTypeEnum } from '@/enum/common'
@@ -195,7 +195,11 @@ export default class SiteDataFormView extends Vue {
 	get sites(): SiteBaseDigestMidModel[] {
 		let sites: SiteBaseDigestMidModel[] = []
 		sites = this.allSiteRealdataList.map((s) => {
-			return new SiteBaseDigestMidModel(s.code, s.obsType)
+			const siteDictFilter = this.distStationNameDicts.filter((d) => d.name == s.code)
+			/** 从 distStationNameDicts 找到对应的站点名称 */
+			const siteName: string =
+				siteDictFilter.length > 0 ? siteDictFilter[0].chname : DEFAULT_SITE_NAME
+			return new SiteBaseDigestMidModel(s.code, s.obsType, siteName)
 			// return { code: s.code, obsType: s.obsType }
 		})
 		return sites

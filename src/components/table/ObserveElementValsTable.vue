@@ -91,6 +91,8 @@ export default class ObserveElementValsTableView extends Vue {
 	@Prop({ type: Array, default: () => [] })
 	obsVals: ObserveElementMidModel[]
 
+	hoverIndex = 0
+
 	get tsList(): number[] {
 		let tsList = []
 		if (this.obsVals.length > 0) tsList = this.obsVals[0].tsList
@@ -124,6 +126,8 @@ export default class ObserveElementValsTableView extends Vue {
 		const colorStr: string = colorScaleFunc(val)
 		return colorStr
 	}
+
+	toSetHoverIndex(index: number): void {}
 }
 </script>
 <style scoped lang="less">

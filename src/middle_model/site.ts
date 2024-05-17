@@ -1,3 +1,4 @@
+import { DEFAULT_SITE_NAME } from '@/const/default'
 import { ObservationTypeEnum } from '@/enum/common'
 
 /**
@@ -45,6 +46,7 @@ class SiteBaseInfoMidModel {
  */
 class SiteBaseDigestMidModel {
 	stationCode: string
+	name: string
 	/** 观测站点类型 : station|fub */
 	observationType: ObservationTypeEnum = ObservationTypeEnum.STATION
 
@@ -53,8 +55,9 @@ class SiteBaseDigestMidModel {
 	 * @param code
 	 * @param obsType
 	 */
-	constructor(code: string, obsType: ObservationTypeEnum) {
+	constructor(code: string, obsType: ObservationTypeEnum, name: string = DEFAULT_SITE_NAME) {
 		this.stationCode = code
+		this.name = name
 		this.observationType = obsType
 	}
 }
