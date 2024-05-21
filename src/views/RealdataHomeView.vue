@@ -35,6 +35,7 @@
 			:distStationWindRealdataList="distStationWindRealdataList"
 			:distStationNameDicts="distStationNameDicts"
 			:allSiteRealdataList="allSiteRealdataList"
+			:allSites="allSites"
 		></SiteDataFormView>
 		<!-- <div><StationTideFormView></StationTideFormView></div> -->
 		<StationBreviaryListView
@@ -135,7 +136,7 @@ import { ObservationTypeEnum } from '@/enum/common'
 	},
 })
 export default class RealdataHomeView extends Vue {
-	/** 海洋站基础信息 集合 */
+	/** 所有海洋站基础信息 集合 */
 	distStationBaseInfoList: StationBaseInfoMidModel[] = []
 
 	/** + 24-03-13 起止时间范围内所有站点的实况增水极值列表(每个站点指定时间范围内有高高潮，低高潮等，非唯一)
@@ -440,6 +441,8 @@ export default class RealdataHomeView extends Vue {
 	/** TODO:[-] 24-05-07 加载指定站点的实况 */
 	loadSitesRealdata(sites: SiteBaseDigestMidModel[], startTs: number, endTs: number) {
 		let that = this
+		// TODO:[-] 24-05-21 此处修改为监听到 sites 发生变化，统一更新一次
+		let sitesRealdata: ObserveValueMidModel[] = []
 		that.allSiteRealdataList = []
 		/**
 		 * 1- 获取传入的 sites 共有集中 观测站位类型(station|fub)
@@ -453,6 +456,10 @@ export default class RealdataHomeView extends Vue {
 				return s.observationType
 			})
 		)
+
+		/**
+		 * TODO:[*] 24-05-20 注意此处批量加载sites未完成site form就已经打开。实际逻辑应为等sites全部加载完毕后再执行 form 中的操作 建议将以下批量调用 loadSiteRealdataListPerclock 方法改为 promise ，等待异步执行全部接手后统一加载 site form 组件
+		 */
 		// 2- 根据不同的观测站位类型批量请求
 		for (const tempType of obsTypeSet) {
 			const codes = sites
@@ -484,16 +491,18 @@ export default class RealdataHomeView extends Vue {
 							tempObsType,
 							tempObsValues
 						)
-						that.allSiteRealdataList.push(obsValMid)
+						sitesRealdata.push(obsValMid)
 					})
 				}
 			})
 		}
+		that.allSiteRealdataList = sitesRealdata
 	}
 
 	/** 加载所有站点的基础信息集合 */
 	loadAllStationBaseInfoList() {
 		const that = this
+		this.distStationBaseInfoList = []
 		return loadDistStationBaseInfoList()
 			.then((res) => {
 				if (res.status == 200) {

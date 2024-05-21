@@ -50,7 +50,7 @@ import { AlertTideEnum } from '@/enum/surge'
 import { DistStationWindListMidModel } from '@/middle_model/wind'
 import { ObservationTypeEnum } from '@/enum/common'
 import { ObserveElementMidModel, ObserveValueMidModel } from '@/middle_model/obs'
-import { SiteBaseDigestMidModel } from '@/middle_model/site'
+import { SiteBaseDigestMidModel, SiteBaseInfoMidModel } from '@/middle_model/site'
 /** + 24-03-21 海洋站数据显示form 包含 tabs 以及 charts 组件 */
 @Component({ components: { StationDataChart, FubDataChart } })
 export default class SiteDataFormView extends Vue {
@@ -114,13 +114,17 @@ export default class SiteDataFormView extends Vue {
 	@Prop({ type: Array, default: () => [] })
 	allSiteRealdataList: ObserveValueMidModel[]
 
+	@Prop({ type: Array, default: () => [] })
+	allSites: SiteBaseInfoMidModel[]
+
 	/** 由RealdataHomeView 统一传递进本组件 */
 	@Prop({ type: Array, default: [] })
 	distStationNameDicts: { name: string; chname: string; sort: number }[]
 
 	/** 展开显示form由  getIsShow 与 codes 数量共同决定*/
 	get isShow(): boolean {
-		return this.getIsShow && this.getCodes.length > 0
+		// TODO:[-] 24-05-21 展开出发条件由 getCodes -> site.length
+		return this.getIsShow && this.sites.length > 0
 	}
 
 	@Getter(GET_SHOW_STATION_SURGE_FORM, { namespace: 'station' }) getIsShow: boolean
@@ -153,56 +157,87 @@ export default class SiteDataFormView extends Vue {
 	/** TODO:[-] 24-05-09 控制显示不同种类的观测站点 station|fub (显示form有所不同) */
 	obsType: ObservationTypeEnum = ObservationTypeEnum.STATION
 
-	/** 设置当前选中的站点编号 */
-	commitCode(code: string): void {
-		this.selectedCode = code
-		// const filterSubTitle=this.subTitles.filter(t => t.code===code)
-		for (let index = 0; index < this.subTitles.length; index++) {
-			const element = this.subTitles[index]
-			if (element.code === code) {
-				this.subTitleIndex = index
-				this.subTitle = element.title
-			}
-		}
-	}
+	// /** 设置当前选中的站点编号 */
+	// commitCode(code: string): void {
+	// 	this.selectedCode = code
+	// 	// const filterSubTitle=this.subTitles.filter(t => t.code===code)
+	// 	for (let index = 0; index < this.subTitles.length; index++) {
+	// 		const element = this.subTitles[index]
+	// 		if (element.code === code) {
+	// 			this.subTitleIndex = index
+	// 			this.subTitle = element.title
+	// 		}
+	// 	}
+	// }
 
 	/** 选定当前站位 */
 	commitSite(val: SiteBaseDigestMidModel): void {
+		const selectedIndex = this.sites.findIndex((temp) => {
+			return temp.stationCode == val.stationCode
+		})
+		const site = this.sites[selectedIndex]
 		const siteRealdata = this.allSiteRealdataList.filter((t) => t.code === val.stationCode)
-		this.selectedSite = val
+		this.selectedSite = site
+		this.subTitleIndex = selectedIndex
 		if (siteRealdata.length > 0) {
 			this.obsVals = siteRealdata[0].obsVals
 		}
 	}
 
-	@Getter(GET_STATIONS_CODES, { namespace: 'station' }) getCodes: string[]
+	// @Getter(GET_STATIONS_CODES, { namespace: 'station' }) getCodes: string[]
 
-	@Watch('getCodes')
-	onCodes(val: string[]): void {
-		this.subTitles = []
-		for (var i = 0; i < val.length; i++) {
-			const filterTemp = this.distStationNameDicts.filter((d) => d.name == val[i])
-			if (filterTemp.length > 0) {
-				this.subTitles.push({ title: filterTemp[0].chname, code: filterTemp[0].name })
-			}
-		}
-		// TODO:[-] 24-04-01 重新加载code后，默认选中最后一个code
-		const lastCode = val[val.length - 1]
-		this.commitCode(lastCode)
-	}
+	// /** TODO:[*] 24-05-21 此部分可取消监听 */
+	// @Watch('getCodes')
+	// onCodes(val: string[]): void {
+	// 	this.subTitles = []
+	// 	for (var i = 0; i < val.length; i++) {
+	// 		const filterTemp = this.allSites.filter((d) => d.stationCode == val[i])
+	// 		if (filterTemp.length > 0) {
+	// 			this.subTitles.push({
+	// 				title: filterTemp[0].stationName,
+	// 				code: filterTemp[0].stationCode,
+	// 			})
+	// 		}
+	// 	}
+	// 	// TODO:[-] 24-04-01 重新加载code后，默认选中最后一个code
+	// 	const lastCode = val[val.length - 1]
+	// 	// this.commitCode(lastCode)
+	// 	// TODO:[-] 24-05-20 此处修改为通过 this.commitSite 提交当前选中的 site
+	// 	const filterSiteRes = this.allSites.filter((temp) => {
+	// 		return temp.stationCode == lastCode
+	// 	})
+	// 	const selectedSite = filterSiteRes.length > 0 ? filterSiteRes[0] : null
+	// 	if (selectedSite != null) {
+	// 		const filterSite = new SiteBaseDigestMidModel(
+	// 			selectedSite.stationCode,
+	// 			selectedSite.observationType,
+	// 			selectedSite.stationName
+	// 		)
+	// 		this.commitSite(filterSite)
+	// 	}
+	// }
 
-	/** 当前站点 */
+	/** TODO:[-] 24-05-21 通过allSiteRealdataList计算获得当前的站点(baseinfo)集合 */
 	get sites(): SiteBaseDigestMidModel[] {
 		let sites: SiteBaseDigestMidModel[] = []
 		sites = this.allSiteRealdataList.map((s) => {
-			const siteDictFilter = this.distStationNameDicts.filter((d) => d.name == s.code)
+			const siteDictFilter = this.allSites.filter((d) => d.stationCode == s.code)
 			/** 从 distStationNameDicts 找到对应的站点名称 */
 			const siteName: string =
-				siteDictFilter.length > 0 ? siteDictFilter[0].chname : DEFAULT_SITE_NAME
+				siteDictFilter.length > 0 ? siteDictFilter[0].stationName : DEFAULT_SITE_NAME
 			return new SiteBaseDigestMidModel(s.code, s.obsType, siteName)
 			// return { code: s.code, obsType: s.obsType }
 		})
 		return sites
+	}
+
+	@Watch('sites')
+	onSites(val: SiteBaseDigestMidModel[]) {
+		/**
+		 * 默认获取最后的val并设置为选中状态
+		 */
+		const lastSite: SiteBaseDigestMidModel = val[val.length - 1]
+		this.commitSite(lastSite)
 	}
 
 	/** 监听当前选中 code

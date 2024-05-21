@@ -361,7 +361,7 @@ export default class RealdataMapView extends Vue {
 		this.pushStationsCodes(code)
 		// TODO:[*] 24-05-07 测试一下将SiteBaseDigestMidModel类型push至vuex数组中
 		// console.log(')')
-
+		// TODO:[*] 24-05-20 注意此处当点击了指定站点后，并为完全加载完查询的站点实况数据，就展开了site form，此时site form中的部分步骤就被执行，会存在数据未加载的情况
 		this.pushSite(new SiteBaseDigestMidModel(code, obsType))
 		this.setShowStationSurgeForm(true)
 		// this.setObservationType(obsType)

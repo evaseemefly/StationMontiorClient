@@ -94,6 +94,10 @@ export default class FubDataChart extends Vue {
 		}
 	}
 
+	mounted() {
+		this.initChart(this.weatherKind)
+	}
+
 	/** 加载海浪要素至chart */
 	loadWaveChart(): void {
 		/** 从当前传入的 obsVals 过滤海浪要素 */
