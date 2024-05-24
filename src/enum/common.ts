@@ -94,6 +94,7 @@ export enum IExpandEnum {
  * @enum {number}
  */
 export enum ObservationTypeEnum {
+	UN_TYPE = -1,
 	/** 海洋站 */
 	STATION = 600,
 

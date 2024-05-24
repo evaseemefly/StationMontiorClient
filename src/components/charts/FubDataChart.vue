@@ -1,4 +1,9 @@
 <template>
+	<!-- <transition
+		enter-active-class="animate__animated animate__fadeIn"
+		leave-active-class="animate__animated animate__fadeOut"
+	> -->
+	<!-- <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut"> -->
 	<div
 		id="station_scalar_form"
 		class="my-detail-form"
@@ -31,6 +36,8 @@
 			</div>
 		</div>
 	</div>
+	<!-- </transition> -->
+	<!-- </transition> -->
 </template>
 <script lang="ts">
 import * as echarts from 'echarts'

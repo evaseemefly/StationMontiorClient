@@ -1,5 +1,6 @@
 <template>
-	<div id="top-menu">
+	<!-- <transition enter-active-class="animated fadeInDown" leave-active-class="animated fadeOutUp"> -->
+	<div id="top-menu" class="animated fadeInDown animate__delay-5s">
 		<div class="menu-bar">
 			<!-- TODO:[-] 22-02-24 curd 栏新的样式1 -->
 			<!-- <div class="menu-item">
@@ -55,6 +56,7 @@
 			</div>
 		</div>
 	</div>
+	<!-- </transition> -->
 </template>
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator'
@@ -68,7 +70,10 @@ export default class HeaderLogoView extends Vue {
 #top-menu {
 	display: flex;
 	flex-direction: column;
-	z-index: 1500;
+	z-index: 1500 !important;
+	position: absolute;
+	top: 10px;
+	right: 50px;
 	flex-direction: row;
 	flex-direction: row;
 	justify-content: flex-start;
@@ -105,9 +110,6 @@ export default class HeaderLogoView extends Vue {
 	}
 	// 顶部的带logo的父级div
 	.top-logo {
-		position: absolute;
-		top: 10px;
-		right: 50px;
 		// background: red;
 		display: flex;
 		color: white;

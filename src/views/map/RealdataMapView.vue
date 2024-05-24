@@ -245,8 +245,8 @@ import {
 	mixins: [WMSMixin, MapMixin],
 })
 export default class RealdataMapView extends Vue {
-	zoom = 5
-	center: number[] = [29.45, 130.8833]
+	zoom = 6
+	center: number[] = [32.45, 125.8833]
 	url =
 		'https://map.geoq.cn/arcgis/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}'
 	// url = 'http://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png'

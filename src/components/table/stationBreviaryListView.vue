@@ -1,35 +1,41 @@
 <template>
-	<div
-		v-draggable
-		id="station_list_main_layout"
-		v-show="getIsShow"
-		element-loading-background="rgba(28, 34, 52, 0.733)"
-	>
-		<StationExtremumListView
-			:title="'增水极值'"
-			:isLoading="isLoading"
-			:isFinished="isFinished"
-			:stationNameDict="distStationNameDicts"
-			:distStationAstronmictideList="distStationAstronmictideList"
-			:distStationTotalSurgeList="distStationRealdataList"
-		></StationExtremumListView>
-		<StationAlertListView
-			:title="'总潮位极值(整点级)'"
-			:isFinished="isFinished"
-			:isLoading="isLoading"
-			:stationNameDicts="distStationNameDicts"
-			:distStationsSurgeList="distStationRealdataMaximumList"
-			:distStationsAlertlevelList="distStationsAlertlevelList"
-		></StationAlertListView>
-		<StationAlertListView
-			:title="'总潮位极值(分钟级)'"
-			:isFinished="isFinished"
-			:isLoading="isLoading"
-			:stationNameDicts="distStationNameDicts"
-			:distStationsSurgeList="distStationRealdataExtremumList"
-			:distStationsAlertlevelList="distStationsAlertlevelList"
-		></StationAlertListView>
-	</div>
+	<!-- <transition enter-active-class="form-show" leave-active-class="form-hide"> -->
+	<transition enter-active-class="animated fadeInDown" leave-active-class="animated fadeOutUp">
+		<div
+			v-draggable
+			id="station_list_main_layout"
+			v-show="getIsShow"
+			element-loading-background="rgba(28, 34, 52, 0.733)"
+		>
+			<!-- <div id="station_list_main_layout" v-show="getIsShow" class="animated fadeInDown"> -->
+			<!-- <div id="station_list_main_layout" v-show="getIsShow"> -->
+			<!-- <div class="animate__animated animate__fadeInDown">测试测试</div> -->
+			<StationExtremumListView
+				:title="'增水极值'"
+				:isLoading="isLoading"
+				:isFinished="isFinished"
+				:stationNameDict="distStationNameDicts"
+				:distStationAstronmictideList="distStationAstronmictideList"
+				:distStationTotalSurgeList="distStationRealdataList"
+			></StationExtremumListView>
+			<StationAlertListView
+				:title="'总潮位极值(整点级)'"
+				:isFinished="isFinished"
+				:isLoading="isLoading"
+				:stationNameDicts="distStationNameDicts"
+				:distStationsSurgeList="distStationRealdataMaximumList"
+				:distStationsAlertlevelList="distStationsAlertlevelList"
+			></StationAlertListView>
+			<StationAlertListView
+				:title="'总潮位极值(分钟级)'"
+				:isFinished="isFinished"
+				:isLoading="isLoading"
+				:stationNameDicts="distStationNameDicts"
+				:distStationsSurgeList="distStationRealdataExtremumList"
+				:distStationsAlertlevelList="distStationsAlertlevelList"
+			></StationAlertListView>
+		</div>
+	</transition>
 </template>
 <script lang="ts">
 import {
@@ -50,6 +56,9 @@ import { IExpandEnum } from '@/enum/common'
 import { loadInLandDistStationTotalSurgeList, loadAllStationRealdataMaximumList } from '@/api/surge'
 import { DistStationSurgeListMidModel, StationMaximumSurgeMideModel } from '@/middle_model/surge'
 import { StationBaseInfoMidModel } from '@/middle_model/station'
+
+// import 'animate.css'
+
 /** - 23-08-17 由于本系统获取增水+天文潮通过一个统一接口获取，将获取逻辑放在外侧 */
 @Component({
 	components: {
@@ -178,7 +187,8 @@ export default class StationBreviaryListView extends Vue {
 	}
 }
 </script>
-<style scoped lang="less">
+<style lang="less">
+@import '../../styles/station/station-chart';
 #station_list_main_layout {
 	position: absolute;
 	top: 80px;

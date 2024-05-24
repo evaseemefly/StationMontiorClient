@@ -1,9 +1,11 @@
 <template>
-	<div class="thumb-list">
+	<!-- <transition enter-active-class="animated fadeInDown delay-2s"> -->
+	<div class="thumb-list animated fadeInDown animate__delay-3s">
 		<!-- <TySearchThumbView title="潮位详情查询"></TySearchThumbView> -->
 		<StationExtremumListThumbView title="潮位站极值列表"></StationExtremumListThumbView>
 		<!-- <StationSurgeListThumbView title="潮位站详情"></StationSurgeListThumbView> -->
 	</div>
+	<!-- </transition> -->
 </template>
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator'

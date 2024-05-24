@@ -1,4 +1,5 @@
 <template>
+	<!-- <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut"> -->
 	<div
 		id="station_scalar_form"
 		class="my-detail-form"
@@ -83,6 +84,7 @@
 			</div>
 		</div>
 	</div>
+	<!-- </transition> -->
 </template>
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator'

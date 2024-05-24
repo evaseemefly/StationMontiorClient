@@ -21,6 +21,9 @@ const DEFAULT_TY_NAME_CH = '未选择'
 /** 默认站点名称 */
 const DEFAULT_SITE_NAME = '默认站点'
 
+/** 默认站点编号 */
+const DEFAULT_SITE_CODE = 'DEFAULT'
+
 const DEFAULT_PRODUCT_TYPE_NAME = '未选择'
 
 /** 默认未选择的台风名称(en) */
@@ -113,4 +116,5 @@ export {
 	DEFAULT_VAL,
 	DEFAULT_VAL_LIST,
 	DEFAULT_SITE_NAME,
+	DEFAULT_SITE_CODE,
 }

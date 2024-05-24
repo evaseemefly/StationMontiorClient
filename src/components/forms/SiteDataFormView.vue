@@ -3,35 +3,56 @@
 		enter-active-class="animate__animated animate__fadeIn"
 		leave-active-class="animate__animated animate__fadeOut"
 	> -->
-	<div v-draggable id="station_surge_form" v-if="isShow" class="right-station-surge-form">
-		<div class="my-detail-form">
-			<div class="sub-titles">
-				<div class="title-border">
-					<div
-						:class="[
-							index == subTitleIndex
-								? 'actived my-sub-title'
-								: 'unactived my-sub-title',
-							item.disabled ? 'disabled' : '',
-						]"
-						:key="index"
-						@click="commitSite(item)"
-						v-for="(item, index) in sites"
-					>
-						{{ item.name }}
+	<transition enter-active-class="animated fadeInDown" leave-active-class="animated fadeOutUp">
+		<div v-draggable id="station_surge_form" v-if="isShow" class="right-station-surge-form">
+			<div class="my-detail-form">
+				<div class="sub-titles">
+					<div class="title-border">
+						<div
+							:class="[
+								index == subTitleIndex
+									? 'actived my-sub-title'
+									: 'unactived my-sub-title',
+								item.disabled ? 'disabled' : '',
+							]"
+							:key="index"
+							@click="commitSite(item)"
+							v-for="(item, index) in sites"
+						>
+							{{ item.name }}
+						</div>
 					</div>
+					<div class="thumb-btn" @click="setExpanded(false)">
+						<i class="fa-solid fa-minus"></i>
+					</div>
+					<!-- <div class="my-sub-title right" @click="setExpanded()">最小化</div> -->
 				</div>
-				<div class="thumb-btn" @click="setExpanded(false)">
-					<i class="fa-solid fa-minus"></i>
+				<div class="detail-content">
+					<!-- TODO:[*] 24-05-22 此处需要加入动态切换 surge 与 fub 两种观测站的 chart -->
+					<!-- <transition
+					enter-active-class="animate__animated animate__fadeInDown"
+					leave-active-class="animate__animated animate__fadeOutDown"
+				> -->
+					<component
+						:is="componetViewName"
+						:tideList="tideList"
+						:surgeList="surgeList"
+						:tsList="tsList"
+						:isFinished="isChildFinished"
+						:stationCode="selectedCode"
+						:alertLevels="alertlevelList"
+						:stationName="subTitle"
+						:wdList="wdList"
+						:wsList="wsList"
+						:obsVals="obsVals"
+					></component>
+					<!-- </transition> -->
+
+					<!-- <FubDataChart :obsVals="obsVals"></FubDataChart> -->
 				</div>
-				<!-- <div class="my-sub-title right" @click="setExpanded()">最小化</div> -->
-			</div>
-			<div class="detail-content">
-				<FubDataChart :obsVals="obsVals"></FubDataChart>
 			</div>
 		</div>
-	</div>
-	<!-- </transition> -->
+	</transition>
 </template>
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator'
@@ -45,7 +66,12 @@ import {
 	SET_SHOW_STATION_SURGE_FORM,
 } from '@/store/types'
 import { DistStationSurgeListMidModel } from '@/middle_model/surge'
-import { DEFAULT_SITE_NAME, DEFAULT_STATION_CODE, DEFAULT_STATION_NAME } from '@/const/default'
+import {
+	DEFAULT_SITE_CODE,
+	DEFAULT_SITE_NAME,
+	DEFAULT_STATION_CODE,
+	DEFAULT_STATION_NAME,
+} from '@/const/default'
 import { AlertTideEnum } from '@/enum/surge'
 import { DistStationWindListMidModel } from '@/middle_model/wind'
 import { ObservationTypeEnum } from '@/enum/common'
@@ -62,6 +88,9 @@ export default class SiteDataFormView extends Vue {
 	isFinished: boolean
 
 	isChildFinished = false
+
+	/** 动态 chart 组件名 */
+	componetViewName = ''
 
 	/** 标题数组 */
 	subTitles: { title: string; code: string }[] = []
@@ -179,6 +208,19 @@ export default class SiteDataFormView extends Vue {
 		const siteRealdata = this.allSiteRealdataList.filter((t) => t.code === val.stationCode)
 		this.selectedSite = site
 		this.subTitleIndex = selectedIndex
+		/** 动态组件的名称 */
+		let dataComponetViewName = 'FubDataChart'
+		switch (site.observationType) {
+			case ObservationTypeEnum.FUB:
+				dataComponetViewName = 'FubDataChart'
+				break
+			case ObservationTypeEnum.STATION:
+				dataComponetViewName = 'StationDataChart'
+				break
+			default:
+				break
+		}
+		this.componetViewName = dataComponetViewName
 		if (siteRealdata.length > 0) {
 			this.obsVals = siteRealdata[0].obsVals
 		}
@@ -225,7 +267,13 @@ export default class SiteDataFormView extends Vue {
 			/** 从 distStationNameDicts 找到对应的站点名称 */
 			const siteName: string =
 				siteDictFilter.length > 0 ? siteDictFilter[0].stationName : DEFAULT_SITE_NAME
-			return new SiteBaseDigestMidModel(s.code, s.obsType, siteName)
+			const siteCode: string =
+				siteDictFilter.length > 0 ? siteDictFilter[0].stationCode : DEFAULT_SITE_CODE
+			const siteObsType =
+				siteDictFilter.length > 0
+					? siteDictFilter[0].observationType
+					: ObservationTypeEnum.UN_TYPE
+			return new SiteBaseDigestMidModel(siteCode, siteObsType, siteName)
 			// return { code: s.code, obsType: s.obsType }
 		})
 		return sites
@@ -241,55 +289,60 @@ export default class SiteDataFormView extends Vue {
 	}
 
 	/** 监听当前选中 code
+	 * TODO:[*] 24-05-22 此处由 selectedCode -> selectedSite
 	 * step1: distStationRealdataList
 	 * step2: distStationsAlertlevelList
 	 * step3: distStationsAlertlevelList 中过滤
 	 * step4: 生成传递给子组件的 mergelist
 	 */
-	@Watch('selectedCode')
-	onSelectedCode(code: string): void {
+	@Watch('selectedSite')
+	onSelectedCode(site: SiteBaseDigestMidModel): void {
+		const code = site.stationCode
 		this.isChildFinished = false
 		this.clearAlertLevelList()
-		// step1: 根据 code 过滤 警戒潮位，实况结果，天文潮结果
-		const tempFilterAlertRes = this.distStationsAlertlevelList.filter(
-			(temp) => temp.station_code == code
-		)
-		const tempFilterRealdataRes = this.distStationRealdataList.filter(
-			(temp) => temp.stationCode == code
-		)
-		const tempFilterAstronmictideRes = this.distStationAstronmictideList.filter(
-			(temp) => temp.stationCode == code
-		)
-		/** 当前code 对应的风要素集合 */
-		const tempFilterWindRes = this.distStationWindRealdataList.filter(
-			(temp) => temp.stationCode == code
-		)
+		// 满足为海洋站才执行以下操作
+		if (site.observationType == ObservationTypeEnum.STATION) {
+			// step1: 根据 code 过滤 警戒潮位，实况结果，天文潮结果
+			const tempFilterAlertRes = this.distStationsAlertlevelList.filter(
+				(temp) => temp.station_code == code
+			)
+			const tempFilterRealdataRes = this.distStationRealdataList.filter(
+				(temp) => temp.stationCode == code
+			)
+			const tempFilterAstronmictideRes = this.distStationAstronmictideList.filter(
+				(temp) => temp.stationCode == code
+			)
+			/** 当前code 对应的风要素集合 */
+			const tempFilterWindRes = this.distStationWindRealdataList.filter(
+				(temp) => temp.stationCode == code
+			)
 
-		// step2: 为天文潮与实况赋值
-		this.realdataList =
-			tempFilterRealdataRes.length > 0 ? tempFilterRealdataRes[0].surgeList : []
-		this.tideList =
-			tempFilterAstronmictideRes.length > 0 ? tempFilterAstronmictideRes[0].surgeList : []
-		this.tsList = tempFilterAstronmictideRes[0].tsList.map((ts) => {
-			return ts
-		})
-		this.surgeList = this.tideList.map((ele, index) => {
-			return this.realdataList[index] == null ? null : this.realdataList[index] - ele
-		})
-		this.wdList = tempFilterWindRes.length > 0 ? tempFilterWindRes[0].wdList : []
+			// step2: 为天文潮与实况赋值
+			this.realdataList =
+				tempFilterRealdataRes.length > 0 ? tempFilterRealdataRes[0].surgeList : []
+			this.tideList =
+				tempFilterAstronmictideRes.length > 0 ? tempFilterAstronmictideRes[0].surgeList : []
+			this.tsList = tempFilterAstronmictideRes[0].tsList.map((ts) => {
+				return ts
+			})
+			this.surgeList = this.tideList.map((ele, index) => {
+				return this.realdataList[index] == null ? null : this.realdataList[index] - ele
+			})
+			this.wdList = tempFilterWindRes.length > 0 ? tempFilterWindRes[0].wdList : []
 
-		this.wsList = tempFilterWindRes.length > 0 ? tempFilterWindRes[0].wsList : []
+			this.wsList = tempFilterWindRes.length > 0 ? tempFilterWindRes[0].wsList : []
 
-		// step 3: 获取指定站点对应的警戒潮位
-		if (tempFilterAlertRes.length > 0) {
-			const filterAlers = tempFilterAlertRes[0]
-			for (let index = 0; index < filterAlers.alert_level_list.length; index++) {
-				const level = filterAlers.alert_level_list[index]
-				const tide = filterAlers.alert_tide_list[index]
-				this.alertlevelList.push({ tide: tide, alert: level })
+			// step 3: 获取指定站点对应的警戒潮位
+			if (tempFilterAlertRes.length > 0) {
+				const filterAlers = tempFilterAlertRes[0]
+				for (let index = 0; index < filterAlers.alert_level_list.length; index++) {
+					const level = filterAlers.alert_level_list[index]
+					const tide = filterAlers.alert_tide_list[index]
+					this.alertlevelList.push({ tide: tide, alert: level })
+				}
 			}
+			this.isChildFinished = true
 		}
-		this.isChildFinished = true
 	}
 
 	setExpanded(val: boolean) {
@@ -332,5 +385,10 @@ export default class SiteDataFormView extends Vue {
 		@form-header-expand();
 		top: 15px;
 	}
+}
+
+// TOTO:[-] 24-05-23 加入了 动态切换组件时的动画效果
+.component-fade-enter,
+.component-fade-leave-to {
 }
 </style>
