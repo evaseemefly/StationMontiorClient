@@ -37,6 +37,7 @@ const loadAllFubsBaseInfo = (): Promise<
 
 /**
  * @description 获取制定浮标的实况数据(整点)
+ * 与 station.ts -> loadStationsRealdataPerclock 接口签名一致
  * @author evaseemefly
  * @date 2024/05/08
  * @param {string} codes

@@ -177,7 +177,9 @@ export default class RealdataHomeView extends Vue {
 	/** 所有浮标站点的基础信息集合 */
 	allFubBaseInfoList: FubBaseInfoMidModel[] = []
 
-	/** TODO:[-] 24-05-08 所有站点的各要素集合 */
+	/** TODO:[-] 24-05-08 所有站点的各要素集合
+	 * - 24-05-28 缺少根据站点分类请求 fub | station 接口(目前只请求 fub 接口)
+	 */
 	allSiteRealdataList: ObserveValueMidModel[] = []
 
 	/** 所有站点(含:station|fub) */
@@ -438,7 +440,9 @@ export default class RealdataHomeView extends Vue {
 			})
 	}
 
-	/** TODO:[-] 24-05-07 加载指定站点的实况 */
+	/** TODO:[-] 24-05-07 加载指定站点的实况
+	 * - 24-06-04 此处修改为与 fub获取所有要素的接口签名一致
+	 */
 	loadSitesRealdata(sites: SiteBaseDigestMidModel[], startTs: number, endTs: number) {
 		let that = this
 		// TODO:[-] 24-05-21 此处修改为监听到 sites 发生变化，统一更新一次

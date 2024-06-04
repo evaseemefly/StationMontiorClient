@@ -44,6 +44,7 @@ const loadSitesRealdataListPerclock = (
 			func = loadFubsRealdataPerclock
 			break
 		case ObservationTypeEnum.STATION:
+			// TODO:[*] 24-05-28 需要实现参考 fub 的实况接口
 			break
 		default:
 			break

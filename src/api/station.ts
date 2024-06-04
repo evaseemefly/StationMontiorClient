@@ -3,6 +3,8 @@ import { host } from './common'
 import authHeader from './auth_header'
 
 import { ITyphoonParams4Station } from '@/interface/station'
+import { ObservationTypeEnum } from '@/enum/common'
+import { ObserveElementEnum } from '@/enum/element'
 
 // 后端的请求地址及端口
 // export const host = host
@@ -312,6 +314,59 @@ const loadStaionRegionCountry = (code: string) => {
 	})
 }
 
+/**
+ * @description 加载指定 codes 对应的整点实况集合
+ * - 24-06-04 与 fub.ts -> loadFubsRealdataPerclock 接口签名一致
+ * @author evaseemefly
+ * @date 2024/06/04
+ * @param {string[]} codes
+ * @param {number} startTs
+ * @param {number} endTs
+ * @returns {*}  {Promise<
+ * 	AxiosResponse<
+ * 		{
+ * 			code: string
+ * 			obs_type: ObservationTypeEnum
+ * 			observation_list: {
+ * 				station_code: string
+ * 				element_type: ObserveElementEnum
+ * 				ts_list: number[]
+ * 				val_list: number[]
+ * 			}[]
+ * 		}[]
+ * 	>
+ * >}
+ */
+const loadStationsRealdataPerclock = (
+	codes: string[],
+	startTs: number,
+	endTs: number
+): Promise<
+	AxiosResponse<
+		{
+			code: string
+			obs_type: ObservationTypeEnum
+			observation_list: {
+				station_code: string
+				element_type: ObserveElementEnum
+				ts_list: number[]
+				val_list: number[]
+			}[]
+		}[]
+	>
+> => {
+	const url = `${host}${area}/realtime/many/perclock/`
+	return axios.get(url, {
+		headers: authHeader(),
+		params: {
+			start_ts: startTs,
+			end_ts: endTs,
+			// station_codes: '' + codes,
+			station_codes: codes,
+		},
+	})
+}
+
 export {
 	loadStationDetailDataList,
 	loadStationExtremumDataList,
@@ -329,4 +384,5 @@ export {
 	loadInlandStationMaxSurge,
 	loadDistStationsAlertLevelList,
 	loadDistStationBaseInfoList,
+	loadStationsRealdataPerclock,
 }
