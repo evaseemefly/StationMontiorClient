@@ -33,7 +33,7 @@
 					enter-active-class="animate__animated animate__fadeInDown"
 					leave-active-class="animate__animated animate__fadeOutDown"
 				> -->
-					<component
+					<!-- <component
 						:is="componetViewName"
 						:tideList="tideList"
 						:surgeList="surgeList"
@@ -45,7 +45,9 @@
 						:wdList="wdList"
 						:wsList="wsList"
 						:obsVals="obsVals"
-					></component>
+					></component> -->
+					<!-- TODO:[*] 24-06-06 尝试使用动态绑定props -->
+					<component :is="componetViewName" v-bind="dynamicChildrenProps"></component>
 					<!-- </transition> -->
 
 					<!-- <FubDataChart :obsVals="obsVals"></FubDataChart> -->
@@ -118,6 +120,13 @@ export default class SiteDataFormView extends Vue {
 			alert_level_list: number[]
 		}
 	} | null = null
+	/** TODO:[*] 24-06-06 动态子组件的prop */
+	dynamicChildrenProps: any = {}
+
+	// get dynamicChildrenProps(): any {
+	// 	if (this.componetViewName == 'FubDataChart') {
+	// 	}
+	// }
 	/** 不同站点的天文潮集合
 	 * TODO:[*] 24-03-15 此处将数据类型修改为与distStationRealdataList一致
 	 */
@@ -206,6 +215,7 @@ export default class SiteDataFormView extends Vue {
 		})
 		const site = this.sites[selectedIndex]
 		const siteRealdata = this.allSiteRealdataList.filter((t) => t.code === val.stationCode)
+		this.selectedCode = site.stationCode
 		this.selectedSite = site
 		this.subTitleIndex = selectedIndex
 		/** 动态组件的名称 */
@@ -213,9 +223,24 @@ export default class SiteDataFormView extends Vue {
 		switch (site.observationType) {
 			case ObservationTypeEnum.FUB:
 				dataComponetViewName = 'FubDataChart'
+				this.dynamicChildrenProps = {
+					obsVals: this.obsVals,
+				}
 				break
 			case ObservationTypeEnum.STATION:
 				dataComponetViewName = 'StationDataChart'
+				this.dynamicChildrenProps = {
+					tideList: this.tideList,
+					surgeList: this.surgeList,
+					tsList: this.tsList,
+					isFinished: this.isChildFinished,
+					stationCode: this.selectedCode,
+					alertLevels: this.alertlevelList,
+					stationName: this.subTitle,
+					wdList: this.wdList,
+					wsList: this.wsList,
+					obsVals: this.obsVals,
+				}
 				break
 			default:
 				break

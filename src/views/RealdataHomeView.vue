@@ -107,8 +107,12 @@ import {
 	loadDistStationRealdataExtremumList,
 } from '@/api/surge'
 import { loadDistStationWindRealdataList } from '@/api/wind'
-import { loadDistStationBaseInfoList, loadDistStationsAlertLevelList } from '@/api/station'
-import { loadAllFubsBaseInfo } from '@/api/fub'
+import {
+	loadDistStationBaseInfoList,
+	loadDistStationsAlertLevelList,
+	loadStationsRealdataPerclock,
+} from '@/api/station'
+import { loadAllFubsBaseInfo, loadFubsRealdataPerclock } from '@/api/fub'
 import { loadSitesRealdataListPerclock } from '@/api/realdata'
 
 // middle_model
@@ -440,6 +444,70 @@ export default class RealdataHomeView extends Vue {
 			})
 	}
 
+	/** [-] 24-05-07 加载指定站点的实况
+	 * - 24-06-04 此处修改为与 fub获取所有要素的接口签名一致
+	 * 此方法暂时为备份,不再使用，重写
+	 */
+	loadSitesRealdatabackup(sites: SiteBaseDigestMidModel[], startTs: number, endTs: number) {
+		let that = this
+		// TODO:[-] 24-05-21 此处修改为监听到 sites 发生变化，统一更新一次
+		let sitesRealdata: ObserveValueMidModel[] = []
+		that.allSiteRealdataList = []
+		/**
+		 * 1- 获取传入的 sites 共有集中 观测站位类型(station|fub)
+		 * 2- 根据不同的观测站位类型批量请求
+		 * 3- 将返回的结果写入 allSiteRealdataList
+		 */
+
+		// 1- 获取传入的 sites 共有集中 观测站位类型(station|fub)
+		const obsTypeSet = new Set(
+			sites.map((s) => {
+				return s.observationType
+			})
+		)
+
+		/**
+		 * TODO:[*] 24-05-20 注意此处批量加载sites未完成site form就已经打开。实际逻辑应为等sites全部加载完毕后再执行 form 中的操作 建议将以下批量调用 loadSiteRealdataListPerclock 方法改为 promise ，等待异步执行全部接手后统一加载 site form 组件
+		 */
+		// 2- 根据不同的观测站位类型批量请求
+		for (const tempType of obsTypeSet) {
+			const codes = sites
+				.filter((temp) => {
+					return temp.observationType == tempType
+				})
+				.map((site) => {
+					return site.stationCode
+				})
+			// 2-2 批量获取 站位对应的实况
+			loadSitesRealdataListPerclock(tempType, codes, startTs, endTs).then((res) => {
+				if (res.status == 200) {
+					console.log(res.data)
+					res.data.map((s) => {
+						const tempCode: string = s.code
+						const tempObsType: ObservationTypeEnum = s.obs_type
+						const tempObsValues: ObserveElementMidModel[] = s.observation_list.map(
+							(o) => {
+								return new ObserveElementMidModel(
+									o.station_code,
+									o.element_type,
+									o.ts_list,
+									o.val_list
+								)
+							}
+						)
+						const obsValMid = new ObserveValueMidModel(
+							tempCode,
+							tempObsType,
+							tempObsValues
+						)
+						sitesRealdata.push(obsValMid)
+					})
+				}
+			})
+		}
+		that.allSiteRealdataList = sitesRealdata
+	}
+
 	/** TODO:[-] 24-05-07 加载指定站点的实况
 	 * - 24-06-04 此处修改为与 fub获取所有要素的接口签名一致
 	 */
@@ -474,7 +542,19 @@ export default class RealdataHomeView extends Vue {
 					return site.stationCode
 				})
 			// 2-2 批量获取 站位对应的实况
-			loadSitesRealdataListPerclock(tempType, codes, startTs, endTs).then((res) => {
+			// TODO:[-] 24-06-06 应该修改为根据不同的观测手段请求不同的接口拼接接口结果
+			let loadRealdataFunc = loadStationsRealdataPerclock
+			switch (tempType) {
+				case ObservationTypeEnum.STATION:
+					loadRealdataFunc = loadStationsRealdataPerclock
+					break
+				case ObservationTypeEnum.FUB:
+					loadRealdataFunc = loadFubsRealdataPerclock
+					break
+				default:
+					break
+			}
+			loadRealdataFunc(codes, startTs, endTs).then((res) => {
 				if (res.status == 200) {
 					console.log(res.data)
 					res.data.map((s) => {

@@ -278,6 +278,10 @@ export default class StationDataChart extends Vue {
 		['obs', '实况潮位'],
 	])
 
+	created() {
+		console.log('Created StationDataChart Vue')
+	}
+
 	/** 鼠标移入 chart 中的 index */
 	hoverDtIndex = 0
 	/** 表格中的海浪观测数据 */
@@ -288,6 +292,10 @@ export default class StationDataChart extends Vue {
 		if (this.chartOpts.isFinished) {
 			this.toInitCharts(this.chartOpts.stationCode)
 		}
+	}
+	unmounted() {
+		// TODO:[*] 24-06-05 采用动态组件会造成的bug，在每次页面销毁时都执行销毁chart操作
+		console.log('UnMounted StationDataChart Vue')
 	}
 
 	loadStationRegionCountry(code: string): void {
@@ -327,12 +335,21 @@ export default class StationDataChart extends Vue {
 		const nodeDiv = document.getElementById(echartsId)
 		let myChart: echarts.ECharts = null
 		// TODO:[-] 23-08-24 若当前 mychart 已经被初始化，则需要先销毁
-		if (this.myChart != null) {
+		// TODO:[*] 24-06-05 注意由于使用了动态组件，切换时每次会重新加载本组件，故不存在mychart，需要重新init
+		if (this.myChart == null) {
+			myChart = echarts.getInstanceByDom(nodeDiv)
+			if (myChart == undefined) {
+				myChart = echarts.init(nodeDiv)
+			} else {
+				myChart.dispose()
+				myChart = echarts.init(nodeDiv)
+			}
+			// myChart.dispose()
+
 			// [ECharts] Instance ec_1692844450070 has been disposed
 			// this.myChart.dispose()
-			myChart = echarts.getInstanceByDom(nodeDiv)
 		} else {
-			myChart = echarts.init(nodeDiv)
+			myChart = echarts.getInstanceByDom(nodeDiv)
 		}
 		if (nodeDiv) {
 			// There is a chart instance already initialized on the dom.
@@ -653,6 +670,8 @@ export default class StationDataChart extends Vue {
 			}
 			// TODO:[*] 23-04-03
 			// ERROR:`setOption` should not be called during main process.
+			// TODO:[*] 24-06-05 使用 fub 与 station 动态切换会出现没有 setOption 方法的错误
+			// TypeError: Cannot read properties of undefined (reading 'setOption')
 			myChart.setOption(option)
 			myChart.getZr().on('click', (params) => {
 				console.log(`点击所有区域${params}`)
