@@ -27,7 +27,7 @@
 			:distStationNameDicts="distStationNameDicts"
 		></StationDataFormView> -->
 		<SiteDataFormView
-			:isFinished="isFinished"
+			:isFinished="isLoadSiteFinished"
 			:distStationAstronmictideList="distStationAstronmictideList"
 			:distStationRealdataList="distStationRealdataList"
 			:distStationsAlertlevelList="distStationsAlertlevelList"
@@ -196,6 +196,9 @@ export default class RealdataHomeView extends Vue {
 	isLoading = false
 	/** 通知子组件所有异步请求均执行结束 */
 	isFinished = false
+
+	/** asyc 加载选定站点实况 */
+	isLoadSiteFinished = false
 
 	/** 一次性加载所有异步请求 */
 	async initLoad() {
@@ -447,6 +450,7 @@ export default class RealdataHomeView extends Vue {
 	/** [-] 24-05-07 加载指定站点的实况
 	 * - 24-06-04 此处修改为与 fub获取所有要素的接口签名一致
 	 * 此方法暂时为备份,不再使用，重写
+	 * @deprecated 已弃用
 	 */
 	loadSitesRealdatabackup(sites: SiteBaseDigestMidModel[], startTs: number, endTs: number) {
 		let that = this
@@ -511,8 +515,10 @@ export default class RealdataHomeView extends Vue {
 	/** TODO:[-] 24-05-07 加载指定站点的实况
 	 * - 24-06-04 此处修改为与 fub获取所有要素的接口签名一致
 	 */
-	loadSitesRealdata(sites: SiteBaseDigestMidModel[], startTs: number, endTs: number) {
+	async loadSitesRealdata(sites: SiteBaseDigestMidModel[], startTs: number, endTs: number) {
 		let that = this
+
+		this.isLoadSiteFinished = false
 		// TODO:[-] 24-05-21 此处修改为监听到 sites 发生变化，统一更新一次
 		let sitesRealdata: ObserveValueMidModel[] = []
 		that.allSiteRealdataList = []
@@ -529,6 +535,8 @@ export default class RealdataHomeView extends Vue {
 			})
 		)
 
+		/** 以下根据观测站类型进行遍历的promise方法集合 */
+		let promises = []
 		/**
 		 * TODO:[*] 24-05-20 注意此处批量加载sites未完成site form就已经打开。实际逻辑应为等sites全部加载完毕后再执行 form 中的操作 建议将以下批量调用 loadSiteRealdataListPerclock 方法改为 promise ，等待异步执行全部接手后统一加载 site form 组件
 		 */
@@ -554,33 +562,42 @@ export default class RealdataHomeView extends Vue {
 				default:
 					break
 			}
-			loadRealdataFunc(codes, startTs, endTs).then((res) => {
-				if (res.status == 200) {
-					console.log(res.data)
-					res.data.map((s) => {
-						const tempCode: string = s.code
-						const tempObsType: ObservationTypeEnum = s.obs_type
-						const tempObsValues: ObserveElementMidModel[] = s.observation_list.map(
-							(o) => {
-								return new ObserveElementMidModel(
-									o.station_code,
-									o.element_type,
-									o.ts_list,
-									o.val_list
-								)
-							}
-						)
-						const obsValMid = new ObserveValueMidModel(
-							tempCode,
-							tempObsType,
-							tempObsValues
-						)
-						sitesRealdata.push(obsValMid)
-					})
-				}
-			})
+			promises.push(
+				loadRealdataFunc(codes, startTs, endTs).then((res) => {
+					if (res.status == 200) {
+						console.log(`RealdataHomeView加载:${tempType}ing`)
+						res.data.map((s) => {
+							const tempCode: string = s.code
+							const tempObsType: ObservationTypeEnum = s.obs_type
+							const tempObsValues: ObserveElementMidModel[] = s.observation_list.map(
+								(o) => {
+									return new ObserveElementMidModel(
+										o.station_code,
+										o.element_type,
+										o.ts_list,
+										o.val_list
+									)
+								}
+							)
+							const obsValMid = new ObserveValueMidModel(
+								tempCode,
+								tempObsType,
+								tempObsValues
+							)
+							sitesRealdata.push(obsValMid)
+						})
+					}
+				})
+			)
 		}
-		that.allSiteRealdataList = sitesRealdata
+		await Promise.all(promises).then(() => {
+			console.log(
+				`RealdataHomeView加载allSiteRealdataList全部promises结束,count:${sitesRealdata.length}`
+			)
+			// TODO:[-] 24-06-12 引发后续bug的根源，之前是将此赋值放在整个 Promise 外侧引发了bug
+			that.allSiteRealdataList = sitesRealdata
+			this.isLoadSiteFinished = true
+		})
 	}
 
 	/** 加载所有站点的基础信息集合 */
@@ -704,3 +721,5 @@ export default class RealdataHomeView extends Vue {
 	}
 }
 </style>
+
+function Deprecated() { throw new Error('Function not implemented.') }

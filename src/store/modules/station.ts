@@ -68,6 +68,10 @@ const getters = {
 		return state.observationType
 	},
 	[GET_SITE](state: IStation): SiteBaseDigestMidModel[] {
+		const codes = state.siteBaseInfoList.map((c) => {
+			return c.stationCode
+		})
+		console.log(`监听到vuex->station->siteBaseInfoList发生变化:[${codes}]`)
 		return state.siteBaseInfoList
 	},
 }

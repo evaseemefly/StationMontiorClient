@@ -33,9 +33,20 @@ import { Component, Prop, Vue, Watch } from 'vue-property-decorator'
 import { Mutation } from 'vuex-class'
 @Component({})
 export default class SubNavDateRangeMenuView extends Vue {
-	startDt: Date = new Date()
-	endDt: Date = new Date()
+	startDt: Date = new Date('2024-02-20')
+	endDt: Date = new Date('2024-02-22')
 	dtFormat = 'MM-dd'
+
+	created() {
+		this.initDt()
+	}
+
+	/** 初始化当前起止时间为当前时间 */
+	initDt() {
+		this.startDt = new Date('2024-02-20')
+		this.endDt = new Date('2024-02-22')
+		this.commitDtRange()
+	}
 
 	commitDtRange() {
 		this.setStartDt(this.startDt)

@@ -280,6 +280,10 @@ export default class StationDataChart extends Vue {
 
 	created() {
 		console.log('Created StationDataChart Vue')
+		// if (this.chartOpts.isFinished) {
+		// 	console.log(`StationDataChart mounted -> to do toInitCharts`)
+		// 	this.toInitCharts(this.chartOpts.stationCode)
+		// }
 	}
 
 	/** 鼠标移入 chart 中的 index */
@@ -289,13 +293,11 @@ export default class StationDataChart extends Vue {
 
 	mounted() {
 		// 由于 父组件通过 v-if 展示此组件，导致prop 的 isFinished,stationCode 发生变化(理应发生变化时)本组件还未被创建
+		// TODO:[-] 24-06-12 注意此处生命周期 created 可以访问数据，但页面中的dom并未渲染，所以初始化echart不能在created 时执行，需要在mounted 中执行
 		if (this.chartOpts.isFinished) {
+			console.log(`StationDataChart mounted -> to do toInitCharts`)
 			this.toInitCharts(this.chartOpts.stationCode)
 		}
-	}
-	unmounted() {
-		// TODO:[*] 24-06-05 采用动态组件会造成的bug，在每次页面销毁时都执行销毁chart操作
-		console.log('UnMounted StationDataChart Vue')
 	}
 
 	loadStationRegionCountry(code: string): void {
@@ -330,108 +332,49 @@ export default class StationDataChart extends Vue {
 		title: string,
 		selectIndex: number
 	): void {
+		console.log(`StationDataChart -> initCharts`)
 		const that = this
 		const echartsId = 'surge_scalar_chart'
-		const nodeDiv = document.getElementById(echartsId)
-		let myChart: echarts.ECharts = null
-		// TODO:[-] 23-08-24 若当前 mychart 已经被初始化，则需要先销毁
-		// TODO:[*] 24-06-05 注意由于使用了动态组件，切换时每次会重新加载本组件，故不存在mychart，需要重新init
-		if (this.myChart == null) {
-			myChart = echarts.getInstanceByDom(nodeDiv)
-			if (myChart == undefined) {
-				myChart = echarts.init(nodeDiv)
-			} else {
-				myChart.dispose()
-				myChart = echarts.init(nodeDiv)
-			}
-			// myChart.dispose()
-
-			// [ECharts] Instance ec_1692844450070 has been disposed
-			// this.myChart.dispose()
-		} else {
-			myChart = echarts.getInstanceByDom(nodeDiv)
+		/** TODO:[-] 24-06-13 注意此处有可能为空——为何为空
+		 * 由于之前在 created 钩子事件中执行该方法 dom 元素尚未被渲染
+		 */
+		const nodeDiv: HTMLElement | null = document.getElementById(echartsId)
+		// TODO:[-] 24-06-07 会出现不创建 chart 的情况
+		if (this.myChart != null || this.myChart != undefined) {
+			console.log(`当前this.mychart已经存在`)
 		}
-		if (nodeDiv) {
-			// There is a chart instance already initialized on the dom.
 
-			let legendData: {
-				name: string
-				itemStyle: {
-					color: string
-				}
-				textStyle: {
-					color: string
-				}
-			}[] = []
-			let series = []
-			let scale = chroma.scale([
-				// '#00429d',
-				// '#4771b2',
-				'#73a2c6',
-				'#a5d5d8',
-				'#ffffe0',
-				'#ffbcaf',
-				'#f4777f',
-				'#cf3759',
-				'#93003a',
-			])
-			/** 传入的不同变量的总数 */
-			let fieldsCount: number = yVals.length + 1
-			for (let index = 0; index < yVals.length; index++) {
-				const element = yVals[index]
-				const tempLegend: {
-					name: string
-					itemStyle: {
-						color: string
-					}
-					textStyle: {
-						color: string
-					}
-				} = {
-					name: element.fieldName,
-					itemStyle: {
-						color: scale(index / fieldsCount).hex(),
-					},
-					textStyle: {
-						color: scale(index / fieldsCount).hex(),
-					},
-				}
-				legendData.push(tempLegend)
+		// step1: 初始化 chart 实例
+		let myChart: echarts.ECharts = echarts.init(nodeDiv)
+		// TODO:[-] 23-08-24 若当前 mychart 已经被初始化，则需要先销毁
+		// TODO:[-] 24-06-05 注意由于使用了动态组件，切换时每次会重新加载本组件，故不存在mychart，需要重新init 24-6-12 Error: Initialize failed: invalid dom.
+		// There is a chart instance already initialized on the dom.
 
-				const tempSeries = {
-					name: element.fieldName,
-					type: 'line',
-					silent: false,
-
-					lineStyle: { color: scale(index / fieldsCount).hex() },
-					emphasis: {
-						focus: 'series',
-					},
-					data: element.yList,
-					showSymbol: false,
-					smooth: true,
-					markPoint: {
-						symbol: 'circle',
-						symbolSize: 2,
-						data: [
-							{ type: 'max', name: 'Max' },
-							{ type: 'min', name: 'Min' },
-						],
-						symbolOffset: [0, '-500%'],
-						label: {
-							color: '#fff',
-						},
-					},
-					markLine: {
-						symbol: ['none', 'none'],
-						label: { show: false },
-						data: [{ xAxis: that.currentForecastDtIndex }],
-					},
-				}
-				series.push(tempSeries)
+		let legendData: {
+			name: string
+			itemStyle: {
+				color: string
 			}
-			// TODO:[-] 23-04-11 加入 area series
-			const element = areaVals
+			textStyle: {
+				color: string
+			}
+		}[] = []
+		let series = []
+		let scale = chroma.scale([
+			// '#00429d',
+			// '#4771b2',
+			'#73a2c6',
+			'#a5d5d8',
+			'#ffffe0',
+			'#ffbcaf',
+			'#f4777f',
+			'#cf3759',
+			'#93003a',
+		])
+		/** 传入的不同变量的总数 */
+		let fieldsCount: number = yVals.length + 1
+		for (let index = 0; index < yVals.length; index++) {
+			const element = yVals[index]
 			const tempLegend: {
 				name: string
 				itemStyle: {
@@ -443,10 +386,10 @@ export default class StationDataChart extends Vue {
 			} = {
 				name: element.fieldName,
 				itemStyle: {
-					color: '#f39c12',
+					color: scale(index / fieldsCount).hex(),
 				},
 				textStyle: {
-					color: '#f39c12',
+					color: scale(index / fieldsCount).hex(),
 				},
 			}
 			legendData.push(tempLegend)
@@ -455,24 +398,12 @@ export default class StationDataChart extends Vue {
 				name: element.fieldName,
 				type: 'line',
 				silent: false,
-				areaStyle: {
-					opacity: 0.8,
-					color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-						{
-							offset: 0,
-							color: '#f1c40f',
-						},
-						{
-							offset: 1,
-							color: '#e67e22',
-						},
-					]),
-				},
-				lineStyle: { color: '#f1c40f' },
+
+				lineStyle: { color: scale(index / fieldsCount).hex() },
 				emphasis: {
 					focus: 'series',
 				},
-				data: element.vals,
+				data: element.yList,
 				showSymbol: false,
 				smooth: true,
 				markPoint: {
@@ -494,104 +425,164 @@ export default class StationDataChart extends Vue {
 				},
 			}
 			series.push(tempSeries)
+		}
+		// TODO:[-] 23-04-11 加入 area series
+		const element = areaVals
+		const tempLegend: {
+			name: string
+			itemStyle: {
+				color: string
+			}
+			textStyle: {
+				color: string
+			}
+		} = {
+			name: element.fieldName,
+			itemStyle: {
+				color: '#f39c12',
+			},
+			textStyle: {
+				color: '#f39c12',
+			},
+		}
+		legendData.push(tempLegend)
 
-			// TODO:[*] 23-07-25 添加四色警戒潮位
-			// TODO: 21-08-25 新加入的四色警戒潮位标线
-			series.push({
-				name: '警戒潮位',
-				type: 'line',
-				markLine: {
-					symbol: 'none', // 虚线不显示端点的圆圈及箭头
-					itemStyle: {
-						color: 'rgb(19, 184, 196)',
+		const tempSeries = {
+			name: element.fieldName,
+			type: 'line',
+			silent: false,
+			areaStyle: {
+				opacity: 0.8,
+				color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+					{
+						offset: 0,
+						color: '#f1c40f',
 					},
-					data: [
-						{
-							name: '蓝色警戒潮位',
-							yAxis: this.alertBlue,
-						},
-					],
-				},
-			})
-			series.push({
-				name: '警戒潮位',
-				type: 'line',
-				markLine: {
-					symbol: 'none',
-					itemStyle: {
-						color: 'rgb(245, 241, 20)',
+					{
+						offset: 1,
+						color: '#e67e22',
 					},
-					data: [
-						{
-							name: '黄色警戒潮位',
-							yAxis: this.alertYellow,
-						},
-					],
+				]),
+			},
+			lineStyle: { color: '#f1c40f' },
+			emphasis: {
+				focus: 'series',
+			},
+			data: element.vals,
+			showSymbol: false,
+			smooth: true,
+			markPoint: {
+				symbol: 'circle',
+				symbolSize: 2,
+				data: [
+					{ type: 'max', name: 'Max' },
+					{ type: 'min', name: 'Min' },
+				],
+				symbolOffset: [0, '-500%'],
+				label: {
+					color: '#fff',
 				},
-			})
-			series.push({
-				name: '警戒潮位',
-				type: 'line',
-				markLine: {
-					symbol: 'none',
-					itemStyle: {
-						color: 'rgb(235, 134, 19)',
-					},
-					data: [
-						{
-							name: '橙色警戒潮位',
-							yAxis: this.alertOrange,
-						},
-					],
-				},
-			})
-			series.push({
-				name: '警戒潮位',
-				type: 'line',
-				markLine: {
-					symbol: 'none',
-					itemStyle: {
-						color: 'rgb(241, 11, 11)',
-						lineStyle: {
-							cap: 'round',
-							type: 'dotted',
-						},
-					},
-					data: [
-						{
-							name: '红色警戒潮位',
-							yAxis: this.alertRed,
-						},
-					],
-				},
-			})
-			//
-			that.yAxisMax = Math.max(
-				...[
-					that.yAxisMax,
-					that.alertBlue,
-					that.alertYellow,
-					that.alertOrange,
-					that.alertRed,
-				]
-			)
+			},
+			markLine: {
+				symbol: ['none', 'none'],
+				label: { show: false },
+				data: [{ xAxis: that.currentForecastDtIndex }],
+			},
+		}
+		series.push(tempSeries)
 
-			const option = {
-				title: {
-					text: title,
-					subtext: that.chartSubTitle,
-					textStyle: {
-						color: '#f8f8f7',
+		// TODO:[*] 23-07-25 添加四色警戒潮位
+		// TODO: 21-08-25 新加入的四色警戒潮位标线
+		series.push({
+			name: '警戒潮位',
+			type: 'line',
+			markLine: {
+				symbol: 'none', // 虚线不显示端点的圆圈及箭头
+				itemStyle: {
+					color: 'rgb(19, 184, 196)',
+				},
+				data: [
+					{
+						name: '蓝色警戒潮位',
+						yAxis: this.alertBlue,
+					},
+				],
+			},
+		})
+		series.push({
+			name: '警戒潮位',
+			type: 'line',
+			markLine: {
+				symbol: 'none',
+				itemStyle: {
+					color: 'rgb(245, 241, 20)',
+				},
+				data: [
+					{
+						name: '黄色警戒潮位',
+						yAxis: this.alertYellow,
+					},
+				],
+			},
+		})
+		series.push({
+			name: '警戒潮位',
+			type: 'line',
+			markLine: {
+				symbol: 'none',
+				itemStyle: {
+					color: 'rgb(235, 134, 19)',
+				},
+				data: [
+					{
+						name: '橙色警戒潮位',
+						yAxis: this.alertOrange,
+					},
+				],
+			},
+		})
+		series.push({
+			name: '警戒潮位',
+			type: 'line',
+			markLine: {
+				symbol: 'none',
+				itemStyle: {
+					color: 'rgb(241, 11, 11)',
+					lineStyle: {
+						cap: 'round',
+						type: 'dotted',
 					},
 				},
-				tooltip: {
-					trigger: 'axis',
-					showContent: true,
-					axisPointer: {
-						type: 'cross',
+				data: [
+					{
+						name: '红色警戒潮位',
+						yAxis: this.alertRed,
 					},
-					formatter: function (params, ticket, callback) {
-						/** 
+				],
+			},
+		})
+		//
+		that.yAxisMax = Math.max(
+			...[that.yAxisMax, that.alertBlue, that.alertYellow, that.alertOrange, that.alertRed]
+		)
+
+		// step2: 创建配置项及数据
+		const option = {
+			title: {
+				text: title,
+				subtext: that.chartSubTitle,
+				textStyle: {
+					color: '#f8f8f7',
+				},
+			},
+			tooltip: {
+				trigger: 'axis',
+				showContent: true,
+				axisPointer: {
+					type: 'cross',
+				},
+				formatter: function (params, ticket, callback) {
+					/** 
 						 * params[0].name
 							'Thu Mar 02 2023 15:00:00 GMT+0800 (中国标准时间)'
 							params[1].seriesName
@@ -599,90 +590,87 @@ export default class StationDataChart extends Vue {
 							params[1].value
 							2.36
 						 */
-						//x轴名称
-						const dt = params[0].name
-						const dtStr: string = fortmatData2YMDHM(dt)
-						let html = '' + dtStr + '<br />'
-						for (let index = 0; index < params.length; index++) {
-							const temp = params[index]
-							const seriesName: string = that.seriesMap.get(temp.seriesName)
-							const seriesVal: string = isNaN(temp.value) ? '-' : temp.value
-							// 拼接为 line
-							const tempHtml = `${seriesName}:${seriesVal}` + '<br />'
-							html = html + tempHtml
-						}
-						return html
+					//x轴名称
+					const dt = params[0].name
+					const dtStr: string = fortmatData2YMDHM(dt)
+					let html = '' + dtStr + '<br />'
+					for (let index = 0; index < params.length; index++) {
+						const temp = params[index]
+						const seriesName: string = that.seriesMap.get(temp.seriesName)
+						const seriesVal: string = isNaN(temp.value) ? '-' : temp.value
+						// 拼接为 line
+						const tempHtml = `${seriesName}:${seriesVal}` + '<br />'
+						html = html + tempHtml
+					}
+					return html
+				},
+			},
+			legend: {
+				data: legendData,
+				right: '10%',
+			},
+			grid: {
+				left: '3%',
+				right: '4%',
+				bottom: '3%',
+				containLabel: true,
+			},
+			xAxis: [
+				{
+					type: 'category',
+					boundaryGap: false,
+					// data: that.forecastDateList,
+					data: xList,
+					nameTextStyle: {
+						color: '#f8f8f7',
+					},
+					axisLabel: {
+						textStyle: {
+							color: '#f8f8f7', //字体颜色
+							fontSize: 12, //字体大小
+						},
+						formatter: (val: Date) => {
+							return fortmatData2YMDHM(val)
+						},
 					},
 				},
-				legend: {
-					data: legendData,
-					right: '10%',
-				},
-				grid: {
-					left: '3%',
-					right: '4%',
-					bottom: '3%',
-					containLabel: true,
-				},
-				xAxis: [
-					{
-						type: 'category',
-						boundaryGap: false,
-						// data: that.forecastDateList,
-						data: xList,
-						nameTextStyle: {
-							color: '#f8f8f7',
-						},
-						axisLabel: {
-							textStyle: {
-								color: '#f8f8f7', //字体颜色
-								fontSize: 12, //字体大小
-							},
-							formatter: (val: Date) => {
-								return fortmatData2YMDHM(val)
-							},
+			],
+			yAxis: [
+				{
+					type: 'value',
+					nameTextStyle: {
+						color: '#f8f8f7',
+					},
+					axisLabel: {
+						textStyle: {
+							color: '#f8f8f7', //字体颜色
+							fontSize: 12, //字体大小
 						},
 					},
-				],
-				yAxis: [
-					{
-						type: 'value',
-						nameTextStyle: {
-							color: '#f8f8f7',
-						},
-						axisLabel: {
-							textStyle: {
-								color: '#f8f8f7', //字体颜色
-								fontSize: 12, //字体大小
-							},
-						},
-						min: that.yAxisMin,
-						max: that.yAxisMax,
-						// scale: true
-					},
-				],
-				series: series,
-			}
-			// TODO:[-] 22-07-05 加入多条集合路径曲线
-			const lineStyle = {
-				width: 1,
-				opacity: 0.5,
-			}
-			// TODO:[*] 23-04-03
-			// ERROR:`setOption` should not be called during main process.
-			// TODO:[*] 24-06-05 使用 fub 与 station 动态切换会出现没有 setOption 方法的错误
-			// TypeError: Cannot read properties of undefined (reading 'setOption')
-			myChart.setOption(option)
-			myChart.getZr().on('click', (params) => {
-				console.log(`点击所有区域${params}`)
-			})
-			myChart.on('timelinechanged', (params) => {
-				console.log(`时间轴中的时间点发生改变:${params}`)
-			})
-			if (!this.myChart) {
-				this.myChart = myChart
-			}
+					min: that.yAxisMin,
+					max: that.yAxisMax,
+					// scale: true
+				},
+			],
+			series: series,
 		}
+		// TODO:[-] 22-07-05 加入多条集合路径曲线
+		const lineStyle = {
+			width: 1,
+			opacity: 0.5,
+		}
+
+		// TODO:[-] 24-06-05 使用 fub 与 station 动态切换会出现没有 setOption 方法的错误 —— chart 并未被成功创建
+		// TypeError: Cannot read properties of undefined (reading 'setOption')
+		// step3: 将配置项及数据赋给 chart 实例
+		myChart.setOption(option)
+		myChart.getZr().on('click', (params) => {
+			console.log(`点击所有区域${params}`)
+		})
+		myChart.on('timelinechanged', (params) => {
+			console.log(`时间轴中的时间点发生改变:${params}`)
+		})
+		this.myChart = myChart
 
 		this.extractExtremumSurge()
 		this.extractExtremumTotalSurge()
@@ -814,6 +802,7 @@ export default class StationDataChart extends Vue {
 	onChartOpts(val: { isFinished: boolean; stationCode: string }): void {
 		// this.loadStationRegionCountry(val.stationCode)
 		if (val.isFinished) {
+			console.log(`watch chartOpts -> to do toInitCharts`)
 			this.toInitCharts(val.stationCode)
 		}
 	}
@@ -822,6 +811,9 @@ export default class StationDataChart extends Vue {
 	 * 初始化charts
 	 */
 	toInitCharts(code: string) {
+		console.log(
+			`[-]执行StationDataChart->toInitCharts.${code},surge:count:${this.surgeList.length},tide:count:${this.tideList.length}`
+		)
 		//step1: 为总潮位赋值
 		this.totalSurgeList = []
 		this.spliceAlerts2Instance(this.alertLevels)
