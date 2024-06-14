@@ -47,10 +47,10 @@
 					></component> -->
 
 					<!-- <component :is="componetViewName"></component> -->
-					<!-- <component :is="componetViewName" v-bind="dynamicChildrenProps"></component> -->
+					<component :is="componetViewName" v-bind="dynamicChildrenProps"></component>
 					<!-- </transition> -->
 					<!-- TODO:[-] 24-06-06 尝试使用动态绑定props -->
-					<StationDataChart v-bind="dynamicChildrenProps"></StationDataChart>
+					<!-- <StationDataChart v-bind="dynamicChildrenProps"></StationDataChart> -->
 
 					<!-- <FubDataChart :obsVals="obsVals"></FubDataChart> -->
 				</div>
@@ -218,7 +218,7 @@ export default class SiteDataFormView extends Vue {
 		/** 动态组件的名称 */
 		let dataComponetViewName = 'StationDataChart'
 
-		this.componetViewName = dataComponetViewName
+		// this.componetViewName = dataComponetViewName
 		// TODO:[-] 24-06-07 在切换子组件时，若不同类型的组件，切换时会重新加载组件并实现全部生命周期流程，两个相同组件间切换不会执行
 		switch (val.observationType) {
 			case ObservationTypeEnum.FUB:
@@ -244,6 +244,7 @@ export default class SiteDataFormView extends Vue {
 			default:
 				break
 		}
+		this.componetViewName = dataComponetViewName
 	}
 
 	/**

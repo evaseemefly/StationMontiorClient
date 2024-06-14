@@ -87,6 +87,7 @@ import { ObserveElementEnum } from '@/enum/element'
 	},
 })
 export default class ObserveElementValsTableView extends Vue {
+	isLoading = false
 	/** 站点的各种观测要素及实况集合 */
 	@Prop({ type: Array, default: () => [] })
 	obsVals: ObserveElementMidModel[]

@@ -22,8 +22,8 @@ export default class ExtremumDetailProgressView extends Vue {
 	title: string
 
 	/** 底部显示的-时间 */
-	@Prop({ type: String, default: '站点', required: true })
-	footerText: string
+	@Prop({ type: Date, default: '站点', required: true })
+	footerText: Date
 
 	/** progress的值 */
 	@Prop({ type: Number, default: 0, required: true })

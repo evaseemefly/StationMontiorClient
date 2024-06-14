@@ -521,7 +521,7 @@ export default class RealdataHomeView extends Vue {
 		this.isLoadSiteFinished = false
 		// TODO:[-] 24-05-21 此处修改为监听到 sites 发生变化，统一更新一次
 		let sitesRealdata: ObserveValueMidModel[] = []
-		// TODO:[*] 24-06-14 每次load之前不要清空当前allSiteRealdataList会触发子组件执行hide操作
+		// TODO:[-] 24-06-14 每次load之前不要清空当前allSiteRealdataList会触发子组件执行hide操作
 		// that.allSiteRealdataList = []
 		/**
 		 * 1- 获取传入的 sites 共有集中 观测站位类型(station|fub)
@@ -601,7 +601,7 @@ export default class RealdataHomeView extends Vue {
 				this.isLoadSiteFinished = true
 			})
 			.catch(() => {
-				// TODO:[*] 24-06-14 在执行加载 sites realdata 的异步操作中的 catch 与 finally 中加入失败或未加载则清空实况的操作(clearSitesRealdata)
+				// TODO:[-] 24-06-14 在执行加载 sites realdata 的异步操作中的 catch 与 finally 中加入失败或未加载则清空实况的操作(clearSitesRealdata)
 				this.clearSitesRealdata()
 			})
 			.finally(() => {
@@ -611,7 +611,7 @@ export default class RealdataHomeView extends Vue {
 			})
 	}
 
-	/** TODO:[*] 24-06-14 清空 allSiteRealdataList 统一在此方法处执行 */
+	/** TODO:[-] 24-06-14 清空 allSiteRealdataList 统一在此方法处执行 */
 	private clearSitesRealdata() {
 		console.log(`RealdataHomeView -> clearSitesRealdata`)
 		this.allSiteRealdataList = []

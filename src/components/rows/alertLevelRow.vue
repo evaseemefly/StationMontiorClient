@@ -17,8 +17,8 @@ export default class AlertLevelRowView extends Vue {
 	@Prop({ type: Number, default: '站点', required: true })
 	title: AlertTideEnum
 
-	@Prop({ type: String, default: '站点', required: true })
-	content: string
+	@Prop({ type: Number, default: '站点', required: true })
+	content: number
 
 	get getAlertColorStr(): string {
 		return filterAlertColorStr(this.title)

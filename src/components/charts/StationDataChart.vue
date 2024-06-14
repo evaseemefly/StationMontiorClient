@@ -243,7 +243,7 @@ export default class StationDataChart extends Vue {
 	 * 需要由父组件传入
 	 * 警戒潮位及对应值 */
 	@Prop({ type: Array, default: () => [] })
-	alertLevels: { tide: number; alert: AlertTideEnum }[] = []
+	alertLevels: { tide: number; alert: AlertTideEnum }[]
 
 	/** 用来绑定当前组件中需要显示的站点基础信息
 	 *
