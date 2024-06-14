@@ -157,7 +157,10 @@ import AlertLevelRowView from '../rows/alertLevelRow.vue'
 	},
 })
 export default class StationDataChart extends Vue {
-	isLoading = false
+	get isLoading() {
+		return !this.isFinished
+	}
+	// isLoading = false
 
 	offsetNum = 0
 
@@ -345,6 +348,9 @@ export default class StationDataChart extends Vue {
 		}
 
 		// step1: 初始化 chart 实例
+		// TODO:[-] 24-06-13 第二次点击其他站点会出现以下警告 [ECharts] There is a chart instance already initialized on the dom.
+		// 尝试在创建前先销毁chart dom
+		echarts.dispose(nodeDiv)
 		let myChart: echarts.ECharts = echarts.init(nodeDiv)
 		// TODO:[-] 23-08-24 若当前 mychart 已经被初始化，则需要先销毁
 		// TODO:[-] 24-06-05 注意由于使用了动态组件，切换时每次会重新加载本组件，故不存在mychart，需要重新init 24-6-12 Error: Initialize failed: invalid dom.

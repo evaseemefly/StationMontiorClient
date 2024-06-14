@@ -364,7 +364,7 @@ export default class SiteDataFormView extends Vue {
 
 		if (val.isFinished) {
 			console.log(
-				`SiteDataForm监听到:isFinished:${val.isFinished} sites count:${val.sites.length}}`
+				`SiteDataFormView -> onSites :isFinished:${val.isFinished} sites count:${val.sites.length}}`
 			)
 			const codes = val.sites.map((s) => {
 				return s.stationCode
@@ -381,6 +381,7 @@ export default class SiteDataFormView extends Vue {
 
 	/** 监听当前选中 code
 	 * TODO:[*] 24-05-22 此处由 selectedCode -> selectedSite
+	 * @deprecated 24-06-13 不需要此方法
 	 * step1: distStationRealdataList
 	 * step2: distStationsAlertlevelList
 	 * step3: distStationsAlertlevelList 中过滤
@@ -388,7 +389,8 @@ export default class SiteDataFormView extends Vue {
 	 */
 	@Watch('selectedSite')
 	onSelectedCode(site: SiteBaseDigestMidModel): void {
-		this.commitSite(site)
+		// console.log(`SiteDataFormView -> onSelectedCode:${site.stationCode}`)
+		// this.commitSite(site)
 	}
 
 	setExpanded(val: boolean) {
