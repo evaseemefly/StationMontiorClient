@@ -105,12 +105,12 @@
 					>
 						<div
 							class="row-arrow"
-							v-show="item !== -9999"
+							v-show="!isHideDir(item)"
 							:style="{ transform: 'rotate(' + item + 'deg)' }"
 						>
 							<i class="fa-solid fa-arrow-up"></i>
 						</div>
-						<span v-show="item == -9999">-</span>
+						<span v-show="isHideDir(item)">-</span>
 					</td>
 				</tr>
 			</tbody>
@@ -128,7 +128,7 @@ import {
 	formatTs2DayHM,
 	filterAlertSurgeColorStr,
 } from '@/util/filter'
-import { DEFAULT_SURGE_TD_STEP, DEFAULT_VAL } from '@/const/default'
+import { DEFAULT_SURGE_TD_STEP, DEFAULT_VAL, NULL_DIR } from '@/const/default'
 import { AlertTideEnum } from '@/enum/surge'
 import { MS_UNIT } from '@/const/unit'
 import { ObserveElementEnum } from '@/enum/element'
@@ -249,6 +249,10 @@ export default class SurgeValsTableInLand extends Vue {
 			splittedWdList = this.wdList.slice(0, this.MAX_WS_COUNT)
 		}
 		return splittedWdList
+	}
+
+	isHideDir(val: number): boolean {
+		return val == NULL_DIR || val == -9999
 	}
 }
 </script>

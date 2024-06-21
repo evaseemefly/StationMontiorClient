@@ -27,6 +27,8 @@
 			:distStationNameDicts="distStationNameDicts"
 		></StationDataFormView> -->
 		<SiteDataFormView
+			:startTs="issueTs"
+			:endTs="endTs"
 			:isFinished="isLoadSiteFinished"
 			:distStationAstronmictideList="distStationAstronmictideList"
 			:distStationRealdataList="distStationRealdataList"
@@ -119,6 +121,7 @@ import { loadSitesRealdataListPerclock } from '@/api/realdata'
 import { DistStationSurgeListMidModel } from '@/middle_model/surge'
 import { DistStationWindListMidModel } from '@/middle_model/wind'
 import { ObservationTypeEnum } from '@/enum/common'
+import { RouterView } from 'vue-router'
 
 /** + 24-03-11 实况Home页 */
 @Component({
@@ -200,32 +203,39 @@ export default class RealdataHomeView extends Vue {
 	/** asyc 加载选定站点实况 */
 	isLoadSiteFinished = false
 
-	/** 一次性加载所有异步请求 */
-	async initLoad() {
-		this.isLoading = false
-		this.isFinished = false
+	/** TODO:[*] 24-06-20 加载所有静态数据——海洋站与浮标 静态数据 */
+	async initStaticsData() {
 		this.allSites = []
 		this.allFubsCodes = []
+		return Promise.all([this.loadAllStationBaseInfoList(), this.loadAllFubsBaseInfo()])
+	}
+
+	/** 一次性加载所有异步请求 */
+	async initLoad(startTs: number, endTs: number) {
+		this.isLoading = false
+		this.isFinished = false
+
 		// 一次性加载所有所需异步请求
 		return Promise.all([
-			this.loadDistStationSurgeRealdataList(this.issueTs, this.endTs),
+			this.loadDistStationSurgeRealdataList(startTs, endTs),
 			this.loadDistStationAlertlevelList(),
-			this.loadDistStationAstronomictideList(this.issueTs, this.endTs),
-			this.loadAllStationBaseInfoList(),
-			this.loadDistStationRealdataExtremumList(this.issueTs, this.endTs),
-			this.loadDistStationWindRealdataList(this.issueTs, this.endTs),
+			this.loadDistStationAstronomictideList(startTs, endTs),
+			// TODO:[*] 24-06-20 注意此处存在一个隐藏的bug，所有站点与浮标的基础信息应只在页面首次加载（或刷新时加载一次即可——静态数据），不需要每次有监听变量发生改变就重新加载一次
+			// this.loadAllStationBaseInfoList(),
+			this.loadDistStationRealdataExtremumList(startTs, endTs),
+			// this.loadDistStationWindRealdataList(this.issueTs, this.endTs),
 			//TODO:[*] 24-04-25 加载所有浮标站点基础信息
-			this.loadAllFubsBaseInfo(),
+			// this.loadAllFubsBaseInfo(),
 		])
 			.then(() => {
 				console.log('执行所有异步请求完毕')
-				this.isLoading = true
-				this.isFinished = true
+				// this.isLoading = true
+				// this.isFinished = true
 				this.loadDistStationNameDicts(this.distStationBaseInfoList)
 			})
 			.finally(() => {
-				this.isFinished = true
-				this.isLoading = true
+				// this.isFinished = true
+				// this.isLoading = true
 				console.log('执行RealData final')
 			})
 			.catch(() => {
@@ -237,7 +247,23 @@ export default class RealdataHomeView extends Vue {
 
 	mounted() {
 		this.isFinished = false
-		this.initLoad()
+		const startTs = this.issueTs
+		const endTs = this.endTs
+		// TODO:[*] 24-06-20 此处重构:只在页面加载时进行静态数据的加载(initStaticsData) -> 加载其他数据(initLoad)
+		this.initStaticsData()
+			.then(() => {
+				// this.initLoad(startTs, endTs)
+			})
+			.finally(() => {
+				this.setLoaded()
+			})
+	}
+
+	/** TODO:[*] 24-06-20 设置子组件加载完毕开关(执行则全部加载完毕) */
+	setLoaded() {
+		this.isLoading = true
+		this.isLoadSiteFinished = true
+		this.isFinished = true
 	}
 
 	//TODO:[*] 24-03-14 测试时暂时替换为固定值
@@ -594,11 +620,11 @@ export default class RealdataHomeView extends Vue {
 		await Promise.all(promises)
 			.then(() => {
 				console.log(
-					`RealdataHomeView加载allSiteRealdataList全部promises结束,count:${sitesRealdata.length}`
+					`RealdataHomeView.vue -> allSiteRealdataList: 加载全部promises结束,count:${sitesRealdata.length}`
 				)
 				// TODO:[-] 24-06-12 引发后续bug的根源，之前是将此赋值放在整个 Promise 外侧引发了bug
 				that.allSiteRealdataList = sitesRealdata
-				this.isLoadSiteFinished = true
+				// this.isLoadSiteFinished = true
 			})
 			.catch(() => {
 				// TODO:[-] 24-06-14 在执行加载 sites realdata 的异步操作中的 catch 与 finally 中加入失败或未加载则清空实况的操作(clearSitesRealdata)
@@ -613,7 +639,7 @@ export default class RealdataHomeView extends Vue {
 
 	/** TODO:[-] 24-06-14 清空 allSiteRealdataList 统一在此方法处执行 */
 	private clearSitesRealdata() {
-		console.log(`RealdataHomeView -> clearSitesRealdata`)
+		console.log(`RealdataHomeView.vue -> clearSitesRealdata`)
 		this.allSiteRealdataList = []
 	}
 
@@ -676,22 +702,66 @@ export default class RealdataHomeView extends Vue {
 		return { getStartDt, getEndDt }
 	}
 
-	@Watch('getSites')
-	onSites(val: SiteBaseDigestMidModel[]) {
-		this.loadSitesRealdata(val, this.issueTs, this.endTs)
+	// @Watch('getSites')
+	// onSites(val: SiteBaseDigestMidModel[]) {
+	// 	this.loadSitesRealdata(val, this.issueTs, this.endTs)
+	// }
+
+	get SitesOpts(): { getStartDt: Date; getEndDt: Date; getSites: SiteBaseDigestMidModel[] } {
+		const { getStartDt, getEndDt, getSites } = this
+		return { getStartDt, getEndDt, getSites }
+	}
+
+	/** TODO:[*] 24-06-17 此处替换原@Watch('getSites') 的操作，需要监听起止时间的变化 */
+	@Watch('SitesOpts')
+	onSitesOpts(val: { getStartDt: Date; getEndDt: Date; getSites: SiteBaseDigestMidModel[] }) {
+		console.log(
+			`RealdataHomeView.vue -> onSitesOpts 监听到:${val.getStartDt},${
+				val.getEndDt
+			},${val.getSites.map((temp) => {
+				return temp.stationCode
+			})}发生变化`
+		)
+		// TODO:[-] 24-06-20 此处加载的 start 与 end time 与传入的时间有歧义
+		const startTs = moment(val.getStartDt).valueOf() / MS_UNIT
+		const endTs = moment(val.getEndDt).valueOf() / MS_UNIT
+		// TODO:[*] 24-06-20 加载各静态及统计信息之前由onDtOp监听并执行，现统一修改于onSitesOpts 顺序执行
+		// this.initStatisticalData(startTs, endTs).then(() => {
+		// 	this.loadSitesRealdata(val.getSites, startTs, endTs)
+		// })
+		// TODO:[*] 24-06-20 此处修改为加载统计数据与加载站点实况均加载完毕后再更新loaded开关
+		Promise.all([
+			this.initStatisticalData(startTs, endTs),
+			this.loadSitesRealdata(val.getSites, startTs, endTs),
+		]).then(() => {
+			this.setLoaded()
+		})
 	}
 
 	/** 获取当前选定的站点 */
 	@Getter(GET_SITE, { namespace: 'station' })
 	getSites: SiteBaseDigestMidModel[]
 
+	/** TODO:[*] 24-06-20
+	 * 根据起止时间加载
+	 * 警戒潮位
+	 * 天文潮
+	 * 各个站点极值
+	 */
+	initStatisticalData(startTs: number, endTs: number): Promise<void> {
+		this.issueTs = startTs
+		this.endTs = endTs
+		// TODO:[*] 24-06-21 此处导致对子组件处理天文潮计算造成潜在的bug——此部分应放置在 onSitesOpts 统一执行
+		return this.initLoad(startTs, endTs)
+	}
+
+	/** @deprecated */
 	@Watch('DtOpts')
 	onDtOp(val: { getStartDt: Date; getEndDt: Date }) {
-		this.issueTs = moment(val.getStartDt).valueOf() / MS_UNIT
-		this.endTs = moment(val.getEndDt).valueOf() / MS_UNIT
-		// this.issueTs = val.getStartDt.getTime()
-		// this.endTs = val.getEndDt.getTime()
-		this.initLoad()
+		// this.issueTs = moment(val.getStartDt).valueOf() / MS_UNIT
+		// this.endTs = moment(val.getEndDt).valueOf() / MS_UNIT
+		// // TODO:[*] 24-06-21 此处导致对子组件处理天文潮计算造成潜在的bug——此部分应放置在 onSitesOpts 统一执行
+		// return this.initLoad()
 	}
 }
 </script>

@@ -66,7 +66,10 @@ const DEFAULT_ALERT_TIDE = -999999
 const DEFAULT_SURGE_DIFF = -999999
 
 /** 潮位不存在的默认值 与后台对应 */
-const DEFAULT_SURGE_VAL = -9999.99
+const DEFAULT_SURGE_VAL = -999.9
+
+/** 方向缺省值 */
+const NULL_DIR = -999.9
 
 /** 所有观测值的默认值 */
 const DEFAULT_VAL = -9999
@@ -117,4 +120,5 @@ export {
 	DEFAULT_VAL_LIST,
 	DEFAULT_SITE_NAME,
 	DEFAULT_SITE_CODE,
+	NULL_DIR,
 }

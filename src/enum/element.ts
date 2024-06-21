@@ -19,7 +19,8 @@ enum ObserveElementEnum {
 	BG = 508,
 	/** 有效波高 */
 	YBG = 509,
-	/** 有效波周期 */
+	/** 潮位 */
+	WL = 510,
 	YZQ,
 }
 

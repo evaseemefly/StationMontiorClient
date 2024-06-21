@@ -46,8 +46,14 @@
 						:obsVals="obsVals"
 					></component> -->
 
-					<!-- <component :is="componetViewName"></component> -->
+					<!-- <transition
+						enter-active-class="animated fadeIn"
+						leave-active-class="animated fadeOut"
+						> -->
+					<!-- TODO:[-] 24-06-17 此处不使用过渡动画，效果不好 -->
 					<component :is="componetViewName" v-bind="dynamicChildrenProps"></component>
+					<!-- </transition> -->
+
 					<!-- </transition> -->
 					<!-- TODO:[-] 24-06-06 尝试使用动态绑定props -->
 					<!-- <StationDataChart v-bind="dynamicChildrenProps"></StationDataChart> -->
@@ -77,10 +83,12 @@ import {
 	DEFAULT_SITE_NAME,
 	DEFAULT_STATION_CODE,
 	DEFAULT_STATION_NAME,
+	DEFAULT_SURGE_VAL,
 } from '@/const/default'
 import { AlertTideEnum } from '@/enum/surge'
 import { DistStationWindListMidModel } from '@/middle_model/wind'
 import { ObservationTypeEnum } from '@/enum/common'
+import { ObserveElementEnum } from '@/enum/element'
 import { ObserveElementMidModel, ObserveValueMidModel } from '@/middle_model/obs'
 import { SiteBaseDigestMidModel, SiteBaseInfoMidModel } from '@/middle_model/site'
 // import DataChart1 from '../charts/DataChart1.vue'
@@ -138,11 +146,15 @@ export default class SiteDataFormView extends Vue {
 	@Prop({ type: Array, default: [] })
 	distStationAstronmictideList: DistStationSurgeListMidModel[]
 
-	/** 不同站点的总潮位集合 */
+	/**@deprecated 24-06-20 暂时废弃
+	 * 由 allSiteRealdataList 替代
+	 *  不同站点的总潮位集合 */
 	@Prop({ type: Array, default: [] })
 	distStationRealdataList: DistStationSurgeListMidModel[]
 
-	/** 不同站点的风要素集合 */
+	/**@deprecated 24-06-20 暂时废弃
+	 * 由 allSiteRealdataList 替代
+	 *  不同站点的风要素集合 */
 	@Prop({ type: Array, default: [] })
 	distStationWindRealdataList: DistStationWindListMidModel[]
 
@@ -154,6 +166,7 @@ export default class SiteDataFormView extends Vue {
 		alert_level_list: number[]
 	}[]
 
+	/** TODO:[*] 24-06-20 选定的站点实况由此部分传入 */
 	@Prop({ type: Array, default: () => [] })
 	allSiteRealdataList: ObserveValueMidModel[]
 
@@ -163,6 +176,17 @@ export default class SiteDataFormView extends Vue {
 	/** 由RealdataHomeView 统一传递进本组件 */
 	@Prop({ type: Array, default: [] })
 	distStationNameDicts: { name: string; chname: string; sort: number }[]
+
+	/** TODO:[*] 24-06-17 用来监听起止时间变化
+	 * 起始时间戳
+	 */
+	@Prop({ type: Number, default: () => 0 })
+	startTs: number
+
+	/**TODO:[*] 24-06-17 用来监听起止时间变化
+	 * 结束时间戳 */
+	@Prop({ type: Number, default: () => 0 })
+	endTs: number
 
 	/** 展开显示form由  getIsShow 与 codes 数量共同决定*/
 	get isShow(): boolean {
@@ -178,9 +202,11 @@ export default class SiteDataFormView extends Vue {
 
 	/** 实况数组 */
 	realdataList: number[] = []
-	/** 天文潮数组 */
+	/** TODO:[*] 24-06-17 天文潮数组——未更新
+	 * 由 distStationAstronmictideList 计算此天文潮数组
+	 */
 	tideList: number[] = []
-	/** 增水数组 */
+	/** TODO:[*] 24-06-17  增水数组——未更新(由于tideList未更新)*/
 	surgeList: number[] = []
 	/** 对应时间戳数组 */
 	tsList: number[] = []
@@ -239,6 +265,8 @@ export default class SiteDataFormView extends Vue {
 					stationName: this.subTitle,
 					wdList: this.wdList,
 					wsList: this.wsList,
+					startTs: this.startTs,
+					endTs: this.endTs,
 				}
 				break
 			default:
@@ -287,31 +315,65 @@ export default class SiteDataFormView extends Vue {
 			const tempFilterAlertRes = this.distStationsAlertlevelList.filter(
 				(temp) => temp.station_code == code
 			)
-			const tempFilterRealdataRes = this.distStationRealdataList.filter(
-				(temp) => temp.stationCode == code
-			)
+			// const tempFilterRealdataRes = this.distStationRealdataList.filter(
+			// 	(temp) => temp.stationCode == code
+			// )
+
+			// TODO:[*] 24-06-20 变更为通过 allSiteRealdataList 过滤实况
+			const tempFilterRealdataRes = this.allSiteRealdataList.filter((temp) => {
+				return temp.code == code
+			})
+
+			/** 当前选定站点 -> code -> 所有观测要素集合 */
+			const tempObsVals =
+				tempFilterRealdataRes.length > 0 ? tempFilterRealdataRes[0].obsVals : []
+
+			/** 过滤后当前站点对应的潮位集合 */
+			const tempSurgeFilter = tempObsVals.filter((temp) => {
+				return temp.elementType == ObserveElementEnum.WL
+			})
+
+			/** TODO:[*] 24-06-21 当修改了起止时间后天文潮集合并未按照起止时间进行更新? */
 			const tempFilterAstronmictideRes = this.distStationAstronmictideList.filter(
 				(temp) => temp.stationCode == code
 			)
-			/** 当前code 对应的风要素集合 */
+			/** @deprecated
+			 *  当前code 对应的风要素集合 */
 			const tempFilterWindRes = this.distStationWindRealdataList.filter(
 				(temp) => temp.stationCode == code
 			)
 
+			/** 过滤后当前站点对应的风速集合 */
+			const tempWsFilter = tempObsVals.filter((temp) => {
+				return temp.elementType == ObserveElementEnum.WS
+			})
+
+			/** 过滤后当前站点对应的风向集合 */
+			const tempWdFilter = tempObsVals.filter((temp) => {
+				return temp.elementType == ObserveElementEnum.WD
+			})
+
 			// step2: 为天文潮与实况赋值
-			this.realdataList =
-				tempFilterRealdataRes.length > 0 ? tempFilterRealdataRes[0].surgeList : []
+			this.realdataList = tempSurgeFilter.length > 0 ? tempSurgeFilter[0].valList : []
 			this.tideList =
 				tempFilterAstronmictideRes.length > 0 ? tempFilterAstronmictideRes[0].surgeList : []
-			this.tsList = tempFilterAstronmictideRes[0].tsList.map((ts) => {
-				return ts
-			})
-			this.surgeList = this.tideList.map((ele, index) => {
-				return this.realdataList[index] == null ? null : this.realdataList[index] - ele
-			})
-			this.wdList = tempFilterWindRes.length > 0 ? tempFilterWindRes[0].wdList : []
+			// TODO:[*] 24-06-20 时间戳数组更新逻辑有误. 修改为根据 tempSurgeFilter -> 获取 tsList
 
-			this.wsList = tempFilterWindRes.length > 0 ? tempFilterWindRes[0].wsList : []
+			// this.tsList = tempFilterAstronmictideRes[0].tsList.map((ts) => {
+			// 	return ts
+			// })
+
+			this.tsList = tempSurgeFilter.length > 0 ? tempSurgeFilter[0].tsList : []
+
+			this.surgeList = this.tideList.map((ele, index) => {
+				return this.realdataList[index] == null ||
+					this.realdataList[index] == DEFAULT_SURGE_VAL
+					? null
+					: this.realdataList[index] - ele
+			})
+			this.wdList = tempWdFilter.length > 0 ? tempWdFilter[0].valList : []
+
+			this.wsList = tempWsFilter.length > 0 ? tempWsFilter[0].valList : []
 
 			// step 3: 获取指定站点对应的警戒潮位
 			if (tempFilterAlertRes.length > 0) {
@@ -350,22 +412,39 @@ export default class SiteDataFormView extends Vue {
 		return sites
 	}
 
-	get siteFormOpts(): { isFinished: boolean; sites: SiteBaseDigestMidModel[] } {
-		const { isFinished, sites } = this
+	/** TODO:[*] 24-06-17由于通过监听sites发现起止时间发生变化不太方便，新加入startTs与endTs */
+	get siteFormOpts(): {
+		isFinished: boolean
+		sites: SiteBaseDigestMidModel[]
+		startTs: number
+		endTs: number
+	} {
+		const { isFinished, sites, startTs, endTs } = this
 
-		return { isFinished, sites }
+		return { isFinished, sites, startTs, endTs }
 	}
 
 	@Watch('siteFormOpts')
-	onSites(val: { isFinished: boolean; sites: SiteBaseDigestMidModel[] }) {
+	onSites(val: {
+		isFinished: boolean
+		sites: SiteBaseDigestMidModel[]
+		startTs: number
+		endTs: number
+	}) {
 		/**
 		 * 默认获取最后的val并设置为选中状态
 		 * TODO:[-] 24-06-12 sites发生变化默认选定最后一个site
+		 *
 		 */
 
 		if (val.isFinished) {
+			// TODO:[*] 24-06-20 此处出现一个bug: 当选中某个站点切换起止时间，会触发两次
 			console.log(
-				`SiteDataFormView -> onSites :isFinished:${val.isFinished} sites count:${val.sites.length}}`
+				`SiteDataFormView -> onSites :isFinished:${val.isFinished}, sites count:${
+					val.sites.length
+				}|codes:${val.sites.map((temp) => {
+					return temp.stationCode
+				})},startTs:${val.startTs},endTs:${val.endTs}}`
 			)
 			const codes = val.sites.map((s) => {
 				return s.stationCode

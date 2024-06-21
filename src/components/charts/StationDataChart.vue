@@ -211,6 +211,17 @@ export default class StationDataChart extends Vue {
 	@Prop({ type: String, default: DEFAULT_STATION_NAME, required: false })
 	stationName: string
 
+	/** TODO:[*] 24-06-17 用来监听起止时间变化
+	 * 起始时间戳
+	 */
+	@Prop({ type: Number, default: () => 0 })
+	startTs: number
+
+	/**TODO:[*] 24-06-17 用来监听起止时间变化
+	 * 结束时间戳 */
+	@Prop({ type: Number, default: () => 0 })
+	endTs: number
+
 	/** 预报值(天文潮)列表 */
 	forcastValList: number[] = []
 
@@ -796,16 +807,21 @@ export default class StationDataChart extends Vue {
 	}
 
 	/** chart监听的变量(若其一发生改变则初始化chart) */
-	get chartOpts(): { isFinished: boolean; stationCode: string } {
-		const { isFinished, stationCode } = this
-		return { isFinished, stationCode }
+	get chartOpts(): { isFinished: boolean; stationCode: string; startTs: number; endTs: number } {
+		const { isFinished, stationCode, startTs, endTs } = this
+		return { isFinished, stationCode, startTs, endTs }
 	}
 
 	/** 监听是否完成加载的操作,
 	 * 加入根据各类list为 yAxisMax 赋值的步骤
 	 */
 	@Watch('chartOpts')
-	onChartOpts(val: { isFinished: boolean; stationCode: string }): void {
+	onChartOpts(val: {
+		isFinished: boolean
+		stationCode: string
+		startTs: number
+		endTs: number
+	}): void {
 		// this.loadStationRegionCountry(val.stationCode)
 		if (val.isFinished) {
 			console.log(`watch chartOpts -> to do toInitCharts`)
