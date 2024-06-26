@@ -32,7 +32,7 @@ export default class WdLegendListView extends Vue {}
 	display: flex;
 	flex-direction: column-reverse;
 	align-items: flex-end; // 副轴向左对齐
-	z-index: 5000;
+	z-index: 1800;
 	position: absolute;
 	bottom: 100px;
 	right: 10px;

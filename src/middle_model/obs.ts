@@ -5,7 +5,7 @@ import { ObserveElementEnum } from '@/enum/element'
 interface IObserveElement {
 	code: string
 	tsList: number[]
-	valList: number[]
+	valList: (number | null)[]
 }
 
 /** 单一要素观测mid */
@@ -13,12 +13,12 @@ class ObserveElementMidModel implements IObserveElement {
 	code: string
 	elementType: ObserveElementEnum
 	tsList: number[]
-	valList: number[]
+	valList: (number | null)[]
 	constructor(
 		code: string,
 		elementType: ObserveElementEnum,
 		tsList: number[],
-		valList: number[]
+		valList: (number | null)[]
 	) {
 		this.code = code
 		this.elementType = elementType

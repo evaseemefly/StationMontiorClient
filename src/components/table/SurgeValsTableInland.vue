@@ -128,7 +128,7 @@ import {
 	formatTs2DayHM,
 	filterAlertSurgeColorStr,
 } from '@/util/filter'
-import { DEFAULT_SURGE_TD_STEP, DEFAULT_VAL, NULL_DIR } from '@/const/default'
+import { DEFAULT_SURGE_TD_STEP, DEFAULT_VAL, DEFAULT_VAL_LIST, NULL_DIR } from '@/const/default'
 import { AlertTideEnum } from '@/enum/surge'
 import { MS_UNIT } from '@/const/unit'
 import { ObserveElementEnum } from '@/enum/element'
@@ -252,7 +252,8 @@ export default class SurgeValsTableInLand extends Vue {
 	}
 
 	isHideDir(val: number): boolean {
-		return val == NULL_DIR || val == -9999
+		// return val == NULL_DIR || val == -9999
+		return DEFAULT_VAL_LIST.includes(val)
 	}
 }
 </script>

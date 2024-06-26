@@ -42,12 +42,13 @@
 						:style="{ background: obsVal2Color(item, itemObs.elementType) }"
 					>
 						<!-- Error in render: "TypeError: Cannot read properties of undefined (reading 'WD')" -->
-						<span v-if="!isVector(itemObs)">{{ item | formatSurgeFixed2Str }}</span>
+						<span v-if="!isVector(itemObs, item)">{{
+							item | formatSurgeFixed2Str
+						}}</span>
 
 						<div
 							class="row-arrow"
-							v-show="item !== -9999"
-							v-if="isVector(itemObs)"
+							v-if="isVector(itemObs, item)"
 							:style="{ transform: 'rotate(' + item + 'deg)' }"
 						>
 							<i class="fa-solid fa-arrow-up"></i>
@@ -75,6 +76,7 @@ import {
 	filterBPColorStr,
 } from '@/util/filter'
 import { ObserveElementEnum } from '@/enum/element'
+import { DEFAULT_VAL_LIST } from '@/const/default'
 
 /** 单一站点的各个观测要素的 table */
 @Component({
@@ -94,6 +96,9 @@ export default class ObserveElementValsTableView extends Vue {
 
 	hoverIndex = 0
 
+	/** 空值集合 */
+	defaultVals = DEFAULT_VAL_LIST
+
 	get tsList(): number[] {
 		let tsList = []
 		if (this.obsVals.length > 0) tsList = this.obsVals[0].tsList
@@ -101,8 +106,8 @@ export default class ObserveElementValsTableView extends Vue {
 	}
 
 	/** 是否为矢量要素(wd) */
-	isVector(item: ObserveElementMidModel): boolean {
-		return item.elementType == ObserveElementEnum.WD
+	isVector(item: ObserveElementMidModel, val: number | null): boolean {
+		return item.elementType == ObserveElementEnum.WD && !DEFAULT_VAL_LIST.includes(val)
 	}
 
 	/** TODO:[-] 24-05-10 根据观测值及要素类型获取线性色标的hex */

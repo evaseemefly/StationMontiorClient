@@ -28,7 +28,9 @@
 	</div>
 </template>
 <script lang="ts">
+import { MS_UNIT } from '@/const/unit'
 import { SET_END_DT, SET_START_DT } from '@/store/types'
+import moment from 'moment'
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator'
 import { Mutation } from 'vuex-class'
 @Component({})
@@ -36,6 +38,9 @@ export default class SubNavDateRangeMenuView extends Vue {
 	startDt: Date = new Date('2024-02-20')
 	endDt: Date = new Date('2024-02-22')
 	dtFormat = 'MM-dd'
+
+	/** 起止时间的限制(单位:毫秒) */
+	limitDuration: number = 60 * 60 * 24 * 10 * MS_UNIT
 
 	created() {
 		this.initDt()
@@ -48,7 +53,14 @@ export default class SubNavDateRangeMenuView extends Vue {
 		this.commitDtRange()
 	}
 
+	/** 提交选定时间
+	 * TODO:[*] 24-06-26 起止四件不允许超过10天
+	 */
 	commitDtRange() {
+		if (moment(this.endDt).valueOf() - moment(this.startDt).valueOf() > this.limitDuration) {
+			this.$alert('传入的起止时间间隔不允许超过10天', '提示')
+			return
+		}
 		this.setStartDt(this.startDt)
 		this.setEndDt(this.endDt)
 	}

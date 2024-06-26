@@ -574,6 +574,17 @@ const formatObsType2Name = (val: ObserveElementEnum): string => {
 	return name
 }
 
+/** TODO:[*] 24-06-24 对于vals数组的缺省值填充指定数值(fillDefault) */
+const fillDefaultVal2List = <T>(vals: T[], defaultList: T[], fillDefault: T = null): T[] => {
+	// const filledList: T[] = []
+	vals.forEach((ele, index) => {
+		if (defaultList.includes(ele)) {
+			vals[index] = fillDefault
+		}
+	})
+	return vals
+}
+
 export {
 	fortmatData2YMDHM,
 	formatOnlyFirstCol,
@@ -608,4 +619,5 @@ export {
 	filterAlertColorStr,
 	formatObsType2Name,
 	filterBPColorStr,
+	fillDefaultVal2List,
 }

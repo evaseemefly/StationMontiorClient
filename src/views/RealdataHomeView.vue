@@ -14,7 +14,7 @@
 		</div>
 		<!-- 温带预报系统底部的主要操作按钮栏 -->
 		<div class="layout-bottom"><RealdataSubNavMenuView></RealdataSubNavMenuView></div>
-		<DisplayTabsView :maxCount="5"></DisplayTabsView>
+		<!-- <DisplayTabsView :maxCount="5"></DisplayTabsView> -->
 		<!-- <WaveGridForecastDataFormView></WaveGridForecastDataFormView> -->
 		<!-- TODO:[-] 24-05-10 暂时不使用 -->
 		<!-- <StationDataFormView
@@ -122,6 +122,7 @@ import { DistStationSurgeListMidModel } from '@/middle_model/surge'
 import { DistStationWindListMidModel } from '@/middle_model/wind'
 import { ObservationTypeEnum } from '@/enum/common'
 import { RouterView } from 'vue-router'
+import { fillDefaultVal2List } from '@/util/filter'
 
 /** + 24-03-11 实况Home页 */
 @Component({
@@ -217,7 +218,7 @@ export default class RealdataHomeView extends Vue {
 
 		// 一次性加载所有所需异步请求
 		return Promise.all([
-			this.loadDistStationSurgeRealdataList(startTs, endTs),
+			// this.loadDistStationSurgeRealdataList(startTs, endTs),
 			this.loadDistStationAlertlevelList(),
 			this.loadDistStationAstronomictideList(startTs, endTs),
 			// TODO:[*] 24-06-20 注意此处存在一个隐藏的bug，所有站点与浮标的基础信息应只在页面首次加载（或刷新时加载一次即可——静态数据），不需要每次有监听变量发生改变就重新加载一次
@@ -329,7 +330,9 @@ export default class RealdataHomeView extends Vue {
 			})
 	}
 
-	/** 加载所有站点实况集合 */
+	/** 加载所有站点实况集合
+	 * @deprecated 24-06-24
+	 */
 	loadDistStationSurgeRealdataList(startTs: number, endTs: number) {
 		// this.isLoading = true
 
@@ -545,7 +548,9 @@ export default class RealdataHomeView extends Vue {
 		let that = this
 
 		this.isLoadSiteFinished = false
-		// TODO:[-] 24-05-21 此处修改为监听到 sites 发生变化，统一更新一次
+		/** 站点实况集合
+		 * TODO:[-] 24-05-21 此处修改为监听到 sites 发生变化，统一更新一次
+		 */
 		let sitesRealdata: ObserveValueMidModel[] = []
 		// TODO:[-] 24-06-14 每次load之前不要清空当前allSiteRealdataList会触发子组件执行hide操作
 		// that.allSiteRealdataList = []
@@ -598,11 +603,14 @@ export default class RealdataHomeView extends Vue {
 							const tempObsType: ObservationTypeEnum = s.obs_type
 							const tempObsValues: ObserveElementMidModel[] = s.observation_list.map(
 								(o) => {
+									const standardVals: (number | null)[] = fillDefaultVal2List<
+										number | null
+									>(o.val_list, DEFAULT_VAL_LIST)
 									return new ObserveElementMidModel(
 										o.station_code,
 										o.element_type,
 										o.ts_list,
-										o.val_list
+										standardVals
 									)
 								}
 							)

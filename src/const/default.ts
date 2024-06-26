@@ -85,6 +85,10 @@ const DEFAULT_VAL_LIST = [
 	DEFAULT_VAL,
 	9999,
 	9998,
+	9999.0,
+	9998.0,
+	NULL_DIR,
+	null,
 ]
 
 /** 用于 复杂唯一性查询 的 year 与 month 的默认值 */

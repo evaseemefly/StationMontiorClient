@@ -83,6 +83,9 @@
   ![014](/docs/fd_imgs/014.jpg)
   ![015](/docs/fd_imgs/015.jpg)
 
+  24-06-26 完成 station | fub 的动态组件并修复部分bug
+   ![016](/docs/fd_imgs/016.png)
+
 #### 鸣谢:
 
 *感谢风暴潮室的全体同事对本系统的大力支持。*
