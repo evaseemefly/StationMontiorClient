@@ -54,9 +54,12 @@ import {
 	SET_SHADE_NAV_TIME,
 	SET_STATION_CODE,
 	PUSH_STATIONS_CODE,
+	PUSH_SITE,
 } from '@/store/types'
 import { MS_UNIT } from '@/const/unit'
 import { StationMaximumSurgeMideModel } from '@/middle_model/surge'
+import { SiteBaseDigestMidModel } from '@/middle_model/site'
+import { ObservationTypeEnum } from '@/enum/common'
 
 /** 警戒潮位集合视图 */
 @Component({
@@ -202,6 +205,7 @@ export default class StationAlertListView extends Vue {
 		// console.log(val)
 		// this.setStationCode(val.stationCode)
 		this.pushStationsCodes(val.stationCode)
+		this.pushSite(new SiteBaseDigestMidModel(val.stationCode, ObservationTypeEnum.STATION))
 		this.setTyForecastDt(val.dt)
 		this.setShadeTimebar(false)
 		this.selectedTrIndex = index
@@ -210,6 +214,10 @@ export default class StationAlertListView extends Vue {
 	/** 添加当前code至 codes 中 */
 	@Mutation(PUSH_STATIONS_CODE, { namespace: 'station' })
 	pushStationsCodes: { (code: string): void }
+
+	/** 添加当前 site */
+	@Mutation(PUSH_SITE, { namespace: 'station' })
+	pushSite: { (val: SiteBaseDigestMidModel): void }
 
 	/** 设置当前选中的 海洋站code */
 	@Mutation(SET_STATION_CODE, { namespace: 'station' })

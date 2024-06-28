@@ -58,6 +58,9 @@ import {
 	SET_CURRENT_TY_FORECAST_DT,
 	SET_COMPLEX_OPTS_CURRENT_STATION,
 	SET_SHADE_NAV_TIME,
+	PUSH_STATIONS_CODE,
+	SET_OBSERVATION_TYPE,
+	PUSH_SITE,
 } from '@/store/types'
 // api
 import { loadStationExtremumDataList, loadStationNameDict } from '@/api/station'
@@ -66,13 +69,15 @@ import { IHttpResponse } from '@/interface/common'
 // 工具类
 import { fortmatData2MDHM, filterSurgeAlarmColor, filterStationNameCh } from '@/util/filter'
 // enum
-import { IExpandEnum } from '@/enum/common'
+import { IExpandEnum, ObservationTypeEnum } from '@/enum/common'
 // 其他组件
 import SurgeValuePrgressLineView from '@/components/progress/surgeValueProgressView.vue'
 import station from '@/store/modules/station'
 import { MS_UNIT } from '@/const/unit'
 import { StationBaseInfoMidModel } from '@/middle_model/station'
 import { DistStationSurgeListMidModel } from '@/middle_model/surge'
+import { StationIconLayerEnum } from '@/enum/map'
+import { SiteBaseDigestMidModel } from '@/middle_model/site'
 /** 海洋站极值列表 */
 @Component({
 	filters: {
@@ -252,6 +257,7 @@ export default class StationExtremumListView extends Vue {
 			stationName: val.stationName,
 			stationCode: val.stationCode,
 		})
+		this.pushSite(new SiteBaseDigestMidModel(val.stationCode, ObservationTypeEnum.STATION))
 	}
 
 	/** 提交给父级海洋站极值列表 */
@@ -282,6 +288,14 @@ export default class StationExtremumListView extends Vue {
 	/** 设置当前选中的 海洋站code */
 	@Mutation(SET_STATION_CODE, { namespace: 'station' })
 	setStationCode: { (val: string): void }
+
+	/** 添加当前code至 codes 中 */
+	@Mutation(PUSH_STATIONS_CODE, { namespace: 'station' })
+	pushStationsCodes: { (code: string): void }
+
+	/** 添加当前 site */
+	@Mutation(PUSH_SITE, { namespace: 'station' })
+	pushSite: { (val: SiteBaseDigestMidModel): void }
 
 	/** 设置当前选中的 台风预报时刻 */
 	@Mutation(SET_CURRENT_TY_FORECAST_DT, { namespace: 'typhoon' })

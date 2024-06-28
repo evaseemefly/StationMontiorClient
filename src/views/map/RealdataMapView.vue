@@ -426,7 +426,8 @@ export default class RealdataMapView extends Vue {
 	@Getter(GET_ISSUE_TS, { namespace: 'common' })
 	getIssueTs: number
 
-	/**  加载国内wd各个站位的最大增水 */
+	/**@deprecated
+	 * 加载国内wd各个站位的最大增水 */
 	loadInlandStationMaxSurgeList(issueTs: number, is_recent = true): void {
 		const mymap: L.Map = this.$refs.basemap['mapObject']
 		const that = this
@@ -490,7 +491,8 @@ export default class RealdataMapView extends Vue {
 		}
 	}
 
-	/**  24-03-29 将不同站点的总潮位添加至map */
+	/** @deprecated 24-06-27
+	 *   24-03-29 将不同站点的总潮位添加至map */
 	addDistStationTotalSurge2Map() {
 		const mymap: L.Map = this.$refs.basemap['mapObject']
 		const that = this
@@ -557,7 +559,10 @@ export default class RealdataMapView extends Vue {
 	addAllSites2Map() {
 		const mymap: L.Map = this.$refs.basemap['mapObject']
 		const that = this
-		addStaticSitesIcon2Map(
+		// 24-06-27 每次加载前先清除 markers layer
+		this.clearLayersByIds(this.markersIdList)
+
+		const groupdIds: number[] = addStaticSitesIcon2Map(
 			mymap,
 			this.sitesInfoList,
 			(msg: { code: string; name: string; iconType: IconTypeEnum }) => {
@@ -567,6 +572,7 @@ export default class RealdataMapView extends Vue {
 				that.loadSiteAndShow(msg.code, obsType)
 			}
 		)
+		this.markersIdList = groupdIds
 	}
 
 	@Watch('isFinished')

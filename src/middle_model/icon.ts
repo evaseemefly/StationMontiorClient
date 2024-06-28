@@ -978,12 +978,14 @@ const addFubsIcon2Map = (
 	addStaticsIcon2Map(mymap, icons, StationIconLayerEnum.ICON_FUB, callbackFunc)
 }
 
-/** 添加静态站点( station|fub )至地图中 */
+/** 添加静态站点( station|fub )至地图中
+ * 并返回 group ids
+ */
 const addStaticSitesIcon2Map = (
 	mymap: L.Map,
 	sitesList: SiteBaseInfoMidModel[],
 	callbackFunc: (stationTemp: { code: string; name: string; iconType: IconTypeEnum }) => void
-): void => {
+): number[] => {
 	const icons: IIconImplement[] = []
 	for (const tempSite of sitesList) {
 		let tempIconType: IconTypeEnum = IconTypeEnum.STATION_STATICS_ICON
@@ -997,7 +999,7 @@ const addStaticSitesIcon2Map = (
 		)
 		icons.push(tempIcon)
 	}
-	addStaticsIcon2Map(mymap, icons, StationIconLayerEnum.ICON_FUB, callbackFunc)
+	return addStaticsIcon2Map(mymap, icons, StationIconLayerEnum.ICON_FUB, callbackFunc)
 }
 
 /**

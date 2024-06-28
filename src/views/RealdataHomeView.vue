@@ -173,8 +173,13 @@ export default class RealdataHomeView extends Vue {
 	/** 所有站点天文潮集合 */
 	distStationAstronmictideList: DistStationSurgeListMidModel[] = []
 
-	/** 所有站点实况集合 */
+	/** 所有站点实况集合
+	 * TODO:[*] 24-06-27 此处存在歧义，此处为选中的站点的实况集合
+	 */
 	distStationRealdataList: DistStationSurgeListMidModel[] = []
+
+	/** @deprecated TODO:[*] 24-06-27 目前选中的站点实况集合  */
+	selecetdStationRealdataList: DistStationSurgeListMidModel[] = []
 
 	/** 所有站点的风要素集合 */
 	distStationWindRealdataList: DistStationWindListMidModel[] = []
@@ -218,7 +223,7 @@ export default class RealdataHomeView extends Vue {
 
 		// 一次性加载所有所需异步请求
 		return Promise.all([
-			// this.loadDistStationSurgeRealdataList(startTs, endTs),
+			this.loadDistStationSurgeRealdataList(startTs, endTs),
 			this.loadDistStationAlertlevelList(),
 			this.loadDistStationAstronomictideList(startTs, endTs),
 			// TODO:[*] 24-06-20 注意此处存在一个隐藏的bug，所有站点与浮标的基础信息应只在页面首次加载（或刷新时加载一次即可——静态数据），不需要每次有监听变量发生改变就重新加载一次
@@ -248,15 +253,19 @@ export default class RealdataHomeView extends Vue {
 
 	mounted() {
 		this.isFinished = false
-		const startTs = this.issueTs
-		const endTs = this.endTs
+		// TODO:[*] 24-06-28 页面加载时根据 GET_START_DT 与 GET_END_DT 获取起止时间
+		// const startTs = this.issueTs
+		this.issueTs = moment(this.getStartDt).valueOf() / MS_UNIT
+		this.endTs = moment(this.getEndDt).valueOf() / MS_UNIT
+		// const endTs = this.endTs
 		// TODO:[*] 24-06-20 此处重构:只在页面加载时进行静态数据的加载(initStaticsData) -> 加载其他数据(initLoad)
 		this.initStaticsData()
 			.then(() => {
 				// this.initLoad(startTs, endTs)
 			})
 			.finally(() => {
-				this.setLoaded()
+				// TODO:[*] 24-06-27 注意加载静态信息(stations | fubs)信息后不修改加载完毕变量,统计信息未加载完毕
+				// this.setLoaded()
 			})
 	}
 
@@ -332,6 +341,7 @@ export default class RealdataHomeView extends Vue {
 
 	/** 加载所有站点实况集合
 	 * @deprecated 24-06-24
+	 * TODO:[*] 24-06-27 需要调用此方法，注意添加 distStationRealdataList 变量(全站点——海洋站)
 	 */
 	loadDistStationSurgeRealdataList(startTs: number, endTs: number) {
 		// this.isLoading = true
