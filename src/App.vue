@@ -3,6 +3,38 @@
 		<router-view></router-view>
 	</div>
 </template>
+<script lang="ts">
+import { SET_END_DT, SET_START_DT } from '@/store/types'
+import { Component, Prop, Vue, Watch } from 'vue-property-decorator'
+import { Mutation } from 'vuex-class'
+@Component({})
+export default class App extends Vue {
+	created() {
+		this.initDt()
+	}
+
+	/** 初始化当前起止时间为当前时间 */
+	initDt() {
+		const startDt = new Date('2024-02-20')
+		const endDt = new Date('2024-02-22')
+		this.commitDtRange(startDt, endDt)
+	}
+
+	/** 提交选定时间
+	 * TODO:[*] 24-06-26 起止四件不允许超过10天
+	 */
+	commitDtRange(startDt: Date, endDt: Date) {
+		this.setStartDt(startDt)
+		this.setEndDt(endDt)
+	}
+
+	@Mutation(SET_START_DT, { namespace: 'common' })
+	setStartDt: { (val: Date) }
+
+	@Mutation(SET_END_DT, { namespace: 'common' })
+	setEndDt: { (val: Date) }
+}
+</script>
 
 <style lang="less" scoped>
 #app {

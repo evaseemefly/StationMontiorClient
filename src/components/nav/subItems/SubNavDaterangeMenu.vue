@@ -29,28 +29,33 @@
 </template>
 <script lang="ts">
 import { MS_UNIT } from '@/const/unit'
-import { SET_END_DT, SET_START_DT } from '@/store/types'
+import { GET_END_DT, GET_START_DT, SET_END_DT, SET_START_DT } from '@/store/types'
 import moment from 'moment'
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator'
-import { Mutation } from 'vuex-class'
+import { Mutation, Getter } from 'vuex-class'
 @Component({})
 export default class SubNavDateRangeMenuView extends Vue {
-	startDt: Date = new Date('2024-02-20')
-	endDt: Date = new Date('2024-02-22')
+	startDt: Date = new Date()
+	endDt: Date = new Date()
 	dtFormat = 'MM-dd'
 
 	/** 起止时间的限制(单位:毫秒) */
 	limitDuration: number = 60 * 60 * 24 * 10 * MS_UNIT
 
 	created() {
-		this.initDt()
+		// this.initDt()
+	}
+
+	mounted() {
+		this.startDt = this.getStartDt
+		this.endDt = this.getEndDt
 	}
 
 	/** 初始化当前起止时间为当前时间 */
 	initDt() {
-		this.startDt = new Date('2024-02-20')
-		this.endDt = new Date('2024-02-22')
-		this.commitDtRange()
+		// this.startDt = new Date('2024-02-20')
+		// this.endDt = new Date('2024-02-22')
+		// this.commitDtRange()
 	}
 
 	/** 提交选定时间
@@ -70,6 +75,12 @@ export default class SubNavDateRangeMenuView extends Vue {
 
 	@Mutation(SET_END_DT, { namespace: 'common' })
 	setEndDt: { (val: Date) }
+
+	@Getter(GET_END_DT, { namespace: 'common' })
+	getEndDt: Date
+
+	@Getter(GET_START_DT, { namespace: 'common' })
+	getStartDt: Date
 }
 </script>
 <style scoped lang="less">

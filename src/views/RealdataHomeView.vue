@@ -251,6 +251,23 @@ export default class RealdataHomeView extends Vue {
 			})
 	}
 
+	async initRealData(startDt: Date, endDt: Date, sites: SiteBaseDigestMidModel[]) {
+		// TODO:[-] 24-06-20 此处加载的 start 与 end time 与传入的时间有歧义
+		const startTs = moment(startDt).valueOf() / MS_UNIT
+		const endTs = moment(endDt).valueOf() / MS_UNIT
+		// TODO:[*] 24-06-20 加载各静态及统计信息之前由onDtOp监听并执行，现统一修改于onSitesOpts 顺序执行
+		// this.initStatisticalData(startTs, endTs).then(() => {
+		// 	this.loadSitesRealdata(val.getSites, startTs, endTs)
+		// })
+		// TODO:[*] 24-06-20 此处修改为加载统计数据与加载站点实况均加载完毕后再更新loaded开关
+		Promise.all([
+			this.initStatisticalData(startTs, endTs),
+			this.loadSitesRealdata(sites, startTs, endTs),
+		]).then(() => {
+			this.setLoaded()
+		})
+	}
+
 	mounted() {
 		this.isFinished = false
 		// TODO:[*] 24-06-28 页面加载时根据 GET_START_DT 与 GET_END_DT 获取起止时间
@@ -262,6 +279,7 @@ export default class RealdataHomeView extends Vue {
 		this.initStaticsData()
 			.then(() => {
 				// this.initLoad(startTs, endTs)
+				this.initRealData(this.getStartDt, this.getEndDt, this.getSites)
 			})
 			.finally(() => {
 				// TODO:[*] 24-06-27 注意加载静态信息(stations | fubs)信息后不修改加载完毕变量,统计信息未加载完毕
@@ -741,19 +759,20 @@ export default class RealdataHomeView extends Vue {
 			})}发生变化`
 		)
 		// TODO:[-] 24-06-20 此处加载的 start 与 end time 与传入的时间有歧义
-		const startTs = moment(val.getStartDt).valueOf() / MS_UNIT
-		const endTs = moment(val.getEndDt).valueOf() / MS_UNIT
-		// TODO:[*] 24-06-20 加载各静态及统计信息之前由onDtOp监听并执行，现统一修改于onSitesOpts 顺序执行
-		// this.initStatisticalData(startTs, endTs).then(() => {
-		// 	this.loadSitesRealdata(val.getSites, startTs, endTs)
+		// const startTs = moment(val.getStartDt).valueOf() / MS_UNIT
+		// const endTs = moment(val.getEndDt).valueOf() / MS_UNIT
+		// // TODO:[*] 24-06-20 加载各静态及统计信息之前由onDtOp监听并执行，现统一修改于onSitesOpts 顺序执行
+		// // this.initStatisticalData(startTs, endTs).then(() => {
+		// // 	this.loadSitesRealdata(val.getSites, startTs, endTs)
+		// // })
+		// // TODO:[*] 24-06-20 此处修改为加载统计数据与加载站点实况均加载完毕后再更新loaded开关
+		// Promise.all([
+		// 	this.initStatisticalData(startTs, endTs),
+		// 	this.loadSitesRealdata(val.getSites, startTs, endTs),
+		// ]).then(() => {
+		// 	this.setLoaded()
 		// })
-		// TODO:[*] 24-06-20 此处修改为加载统计数据与加载站点实况均加载完毕后再更新loaded开关
-		Promise.all([
-			this.initStatisticalData(startTs, endTs),
-			this.loadSitesRealdata(val.getSites, startTs, endTs),
-		]).then(() => {
-			this.setLoaded()
-		})
+		this.initRealData(val.getStartDt, val.getEndDt, val.getSites)
 	}
 
 	/** 获取当前选定的站点 */
