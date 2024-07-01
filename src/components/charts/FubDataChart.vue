@@ -119,17 +119,24 @@ export default class FubDataChart extends Vue {
 		const tsList: number[] = waveObs[0].tsList
 		// 设置最大值
 		let maxVal = 0
+		let maxMin = 999
 
 		const obsVals: { yList: number[]; fieldName: ObserveElementEnum }[] = waveObs.map(
 			(temp) => {
 				const tempMax: number = Math.max(...temp.valList)
+				const tempMin: number = Math.min(...temp.valList)
+
 				if (tempMax > maxVal) {
 					maxVal = tempMax
+				}
+				if (tempMin < maxMin) {
+					maxMin = tempMin
 				}
 				return { fieldName: temp.elementType, yList: temp.valList }
 			}
 		)
 		this.yAxisMax = maxVal
+		this.yAxisMin = maxMin
 		this.loadChart(tsList, obsVals, '海浪要素')
 	}
 
@@ -143,14 +150,20 @@ export default class FubDataChart extends Vue {
 		// 加载最大风速以及风速
 		const tsList: number[] = bpObs[0].tsList
 		let maxVal = 0
+		let minVal = 1100
 		const obsVals: { yList: number[]; fieldName: ObserveElementEnum }[] = bpObs.map((temp) => {
 			const tempMax: number = Math.max(...temp.valList)
+			const tempMin: number = Math.min(...temp.valList)
 			if (tempMax > maxVal) {
 				maxVal = tempMax
+			}
+			if (tempMin < minVal) {
+				minVal = tempMin
 			}
 			return { fieldName: temp.elementType, yList: temp.valList }
 		})
 		this.yAxisMax = maxVal
+		this.yAxisMin = minVal
 		this.loadChart(tsList, obsVals, '气压要素')
 	}
 
@@ -167,16 +180,22 @@ export default class FubDataChart extends Vue {
 		const tsList: number[] = filterWindRes[0].tsList
 		// 设置最大值
 		let maxVal = 0
+		let maxMin = 999
 		const obsVals: { yList: number[]; fieldName: ObserveElementEnum }[] = filterWindRes.map(
 			(temp) => {
 				const tempMax: number = Math.max(...temp.valList)
+				const tempMin: number = Math.min(...temp.valList)
 				if (tempMax > maxVal) {
 					maxVal = tempMax
+				}
+				if (tempMin < maxMin) {
+					maxMin = tempMin
 				}
 				return { fieldName: temp.elementType, yList: temp.valList }
 			}
 		)
 		this.yAxisMax = maxVal
+		this.yAxisMin = maxMin
 		this.loadChart(tsList, obsVals, '风要素')
 	}
 

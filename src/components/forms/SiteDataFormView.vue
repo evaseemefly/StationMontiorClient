@@ -301,8 +301,11 @@ export default class SiteDataFormView extends Vue {
 		this.selectedSite = site
 		this.subTitleIndex = selectedIndex
 
+		// TODO:[*] 24-07-01 此处加入 obsVals对于elementType的生序排列
 		if (siteRealdata.length > 0) {
-			this.obsVals = siteRealdata[0].obsVals
+			this.obsVals = siteRealdata[0].obsVals.sort((a, b) => {
+				return a.elementType.valueOf() - b.elementType.valueOf()
+			})
 		}
 		// TODO:[-] 24-06-12 以下部分在 onSelectedCode 被提取在 commitSite 方法中
 		const code = site.stationCode
