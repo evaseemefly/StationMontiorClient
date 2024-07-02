@@ -22,6 +22,7 @@ import {
 import { DEFAULT_STATION_CODE } from '@/const/default'
 import { StationIconLayerEnum } from '@/enum/map'
 import { SiteBaseDigestMidModel } from '@/middle_model/site'
+
 interface IStation {
 	stationCode: string
 	isShowStationSurgeForm: boolean
@@ -34,6 +35,12 @@ interface IStation {
 	observationType: StationIconLayerEnum
 	/** 站点摘要信息集合(code,type) */
 	siteBaseInfoList: SiteBaseDigestMidModel[]
+}
+
+/** 常量 */
+const CONSTANT = {
+	/** sites的限制长度:默认为8 */
+	SITES_LIMIT_COUNT: 5,
 }
 
 const state: IStation = {
@@ -113,8 +120,14 @@ const mutations = {
 	[SET_SITE](state: IStation, val: SiteBaseDigestMidModel[]): void {
 		state.siteBaseInfoList = val
 	},
+	/** TODO:[*] 24-07-02 加入长度限制——若超出长度则先进先出剔除 */
 	[PUSH_SITE](state: IStation, val: SiteBaseDigestMidModel): void {
 		if (state.siteBaseInfoList.filter((s) => s.stationCode == val.stationCode).length == 0) {
+			// TODO:[*] 24-07-02 加入对于队列的限制
+			if (state.siteBaseInfoList.length > CONSTANT.SITES_LIMIT_COUNT) {
+				// 删除头元素
+				state.siteBaseInfoList.shift()
+			}
 			state.siteBaseInfoList.push(val)
 		}
 	},

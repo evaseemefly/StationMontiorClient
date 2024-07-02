@@ -15,8 +15,10 @@ export default class App extends Vue {
 
 	/** 初始化当前起止时间为当前时间 */
 	initDt() {
-		const startDt = new Date('2024-02-20')
-		const endDt = new Date('2024-02-22')
+		// TODO:[*] 24-07-01 注意若使用 new Date('2024-02-20') 创建的时间为 2024-02-20 08:00 需要手动声明hh:mm
+		// TODO:[*] 24-07-01 此处需要修改为当前时间,结束时间为+3days
+		const startDt = new Date('2024-02-20 00:00')
+		const endDt = new Date('2024-02-22 00:00')
 		this.commitDtRange(startDt, endDt)
 	}
 
