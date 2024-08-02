@@ -100,6 +100,7 @@ import {
 	DEFAULT_STATION_CODE,
 	DEFAULT_STATION_NAME,
 	DEFAULT_SURGE_VAL,
+	DEFAULT_VAL,
 } from '@/const/default'
 // 接口
 import { IHttpResponse } from '@/interface/common'
@@ -111,6 +112,7 @@ import ExtremumDetailProgressView from '@/components/progress/extremumDetailProg
 import {
 	GET_CURRENT_FORECAST_DT,
 	GET_STATIONS_BASEINFO_LIST,
+	GET_STATIONS_D85_LIST,
 	GET_STATION_CODE,
 	GET_SURGE_TD_STEP,
 	GET_TIMESPAN,
@@ -183,7 +185,7 @@ export default class StationDataChart extends Vue {
 	@Prop({ type: Array, default: () => [] })
 	tideList: number[]
 
-	/** 增水(通过 offsetNum 进行便宜时不修改原始 surgeList) */
+	/** 增水(surgeList) */
 	@Prop({ type: Array, default: () => [] })
 	surgeList: number[]
 
@@ -287,9 +289,9 @@ export default class StationDataChart extends Vue {
 	lon = 0
 
 	seriesMap: Map<string, string> = new Map([
-		['tide', '天文潮'],
-		['surge', '增水'],
-		['obs', '实况潮位'],
+		['tide', '天文潮'], // this.tideList
+		['difftide', '增水'], // this.surgeList
+		['surge', '实况潮位'], // this.totalSurgeList
 	])
 
 	created() {
@@ -611,6 +613,7 @@ export default class StationDataChart extends Vue {
 					const dt = params[0].name
 					const dtStr: string = fortmatData2YMDHM(dt)
 					let html = '' + dtStr + '<br />'
+					// TODO:[*] 24-07-15 对于增水显示为 undefined , 增水实际 name为 "difftide"
 					for (let index = 0; index < params.length; index++) {
 						const temp = params[index]
 						const seriesName: string = that.seriesMap.get(temp.seriesName)
@@ -838,11 +841,18 @@ export default class StationDataChart extends Vue {
 		)
 		//step1: 为总潮位赋值
 		this.totalSurgeList = []
+		// const d85filter = this.getStationsD85List.filter((val) => {
+		// 	return val.code == code
+		// })
+
 		this.spliceAlerts2Instance(this.alertLevels)
 		for (let index = 0; index < this.tideList.length; index++) {
 			const element = this.tideList[index] + this.surgeList[index]
 			this.totalSurgeList.push(element)
 		}
+		// const d85: number = d85filter.length > 0 ? d85filter[0].d85 : DEFAULT_VAL
+		// /** 标准化后的总潮位集合 */
+		// const standardTotalSurgeList = this.totalSurgeList.map((val) => val - d85)
 		let dtList: Date[] = []
 		dtList = this.tsList.map((ts) => {
 			return new Date(ts * MS_UNIT)

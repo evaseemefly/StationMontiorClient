@@ -36,7 +36,7 @@
 			:distStationBaseInfoList="distStationBaseInfoList"
 			:distStationWindRealdataList="distStationWindRealdataList"
 			:distStationNameDicts="distStationNameDicts"
-			:allSiteRealdataList="allSiteRealdataList"
+			:allSiteRealdataList="selectedSiteRealdataList"
 			:allSites="allSites"
 		></SiteDataFormView>
 		<!-- <div><StationTideFormView></StationTideFormView></div> -->
@@ -78,7 +78,13 @@ import RegionStatisticsCard from '@/components/cards/regionStatisticsCard.vue'
 import DisplayTabsView from '@/components/table/father/displayTabsView.vue'
 
 // 默认值
-import { DEFAULT_DATE, DEFAULT_TIMESTAMP, DEFAULT_TY_NUM, DEFAULT_VAL_LIST } from '@/const/default'
+import {
+	DEFAULT_DATE,
+	DEFAULT_TIMESTAMP,
+	DEFAULT_TY_NUM,
+	DEFAULT_VAL,
+	DEFAULT_VAL_LIST,
+} from '@/const/default'
 // vuex
 import {
 	SET_WAVE_PRODUCT_ISSUE_DATETIME,
@@ -89,6 +95,8 @@ import {
 	GET_END_DT,
 	GET_START_DT,
 	GET_SITE,
+	SET_STATIONS_D85_LIST,
+	GET_STATIONS_D85_LIST,
 } from '@/store/types'
 import { LayerTypeEnum, StationIconLayerEnum } from '@/enum/map'
 // interface
@@ -123,6 +131,7 @@ import { DistStationWindListMidModel } from '@/middle_model/wind'
 import { ObservationTypeEnum } from '@/enum/common'
 import { RouterView } from 'vue-router'
 import { fillDefaultVal2List } from '@/util/filter'
+import station from '@/store/modules/station'
 
 /** + 24-03-11 实况Home页 */
 @Component({
@@ -192,8 +201,9 @@ export default class RealdataHomeView extends Vue {
 
 	/** TODO:[-] 24-05-08 所有站点的各要素集合
 	 * - 24-05-28 缺少根据站点分类请求 fub | station 接口(目前只请求 fub 接口)
+	 * 选中的站点的实况(fub|station)
 	 */
-	allSiteRealdataList: ObserveValueMidModel[] = []
+	selectedSiteRealdataList: ObserveValueMidModel[] = []
 
 	/** 所有站点(含:station|fub) */
 	allSites: SiteBaseInfoMidModel[] = []
@@ -226,28 +236,19 @@ export default class RealdataHomeView extends Vue {
 			this.loadDistStationSurgeRealdataList(startTs, endTs),
 			this.loadDistStationAlertlevelList(),
 			this.loadDistStationAstronomictideList(startTs, endTs),
-			// TODO:[*] 24-06-20 注意此处存在一个隐藏的bug，所有站点与浮标的基础信息应只在页面首次加载（或刷新时加载一次即可——静态数据），不需要每次有监听变量发生改变就重新加载一次
+			// TODO:[-] 24-06-20 注意此处存在一个隐藏的bug，所有站点与浮标的基础信息应只在页面首次加载（或刷新时加载一次即可——静态数据），不需要每次有监听变量发生改变就重新加载一次
 			// this.loadAllStationBaseInfoList(),
 			this.loadDistStationRealdataExtremumList(startTs, endTs),
-			// this.loadDistStationWindRealdataList(this.issueTs, this.endTs),
-			//TODO:[*] 24-04-25 加载所有浮标站点基础信息
-			// this.loadAllFubsBaseInfo(),
 		])
 			.then(() => {
 				console.log('执行所有异步请求完毕')
-				// this.isLoading = true
-				// this.isFinished = true
 				this.loadDistStationNameDicts(this.distStationBaseInfoList)
 			})
 			.finally(() => {
-				// this.isFinished = true
-				// this.isLoading = true
 				console.log('执行RealData final')
 			})
 			.catch(() => {
 				console.log('执行RealData -> initLoad 出现异常')
-				// this.isFinished = true
-				// this.isLoading = true
 			})
 	}
 
@@ -255,34 +256,29 @@ export default class RealdataHomeView extends Vue {
 		// TODO:[-] 24-06-20 此处加载的 start 与 end time 与传入的时间有歧义
 		const startTs = moment(startDt).valueOf() / MS_UNIT
 		const endTs = moment(endDt).valueOf() / MS_UNIT
-		// TODO:[*] 24-06-20 加载各静态及统计信息之前由onDtOp监听并执行，现统一修改于onSitesOpts 顺序执行
-		// this.initStatisticalData(startTs, endTs).then(() => {
-		// 	this.loadSitesRealdata(val.getSites, startTs, endTs)
-		// })
-		// TODO:[*] 24-06-20 此处修改为加载统计数据与加载站点实况均加载完毕后再更新loaded开关
+		// TODO:[-] 24-06-20 加载各静态及统计信息之前由onDtOp监听并执行，现统一修改于onSitesOpts 顺序执行
+
 		Promise.all([
 			this.initStatisticalData(startTs, endTs),
 			this.loadSitesRealdata(sites, startTs, endTs),
 		]).then(() => {
+			// TODO:[-] 24-06-20 此处修改为加载统计数据与加载站点实况均加载完毕后再更新loaded开关
 			this.setLoaded()
 		})
 	}
 
 	mounted() {
 		this.isFinished = false
-		// TODO:[*] 24-06-28 页面加载时根据 GET_START_DT 与 GET_END_DT 获取起止时间
-		// const startTs = this.issueTs
+		// TODO:[-] 24-06-28 页面加载时根据 GET_START_DT 与 GET_END_DT 获取起止时间
 		this.issueTs = moment(this.getStartDt).valueOf() / MS_UNIT
 		this.endTs = moment(this.getEndDt).valueOf() / MS_UNIT
-		// const endTs = this.endTs
-		// TODO:[*] 24-06-20 此处重构:只在页面加载时进行静态数据的加载(initStaticsData) -> 加载其他数据(initLoad)
+		// TODO:[-] 24-06-20 此处重构:只在页面加载时进行静态数据的加载(initStaticsData) -> 加载其他数据(initLoad)
 		this.initStaticsData()
 			.then(() => {
-				// this.initLoad(startTs, endTs)
 				this.initRealData(this.getStartDt, this.getEndDt, this.getSites)
 			})
 			.finally(() => {
-				// TODO:[*] 24-06-27 注意加载静态信息(stations | fubs)信息后不修改加载完毕变量,统计信息未加载完毕
+				// TODO:[-] 24-06-27 注意加载静态信息(stations | fubs)信息后不修改加载完毕变量,统计信息未加载完毕
 				// this.setLoaded()
 			})
 	}
@@ -513,7 +509,7 @@ export default class RealdataHomeView extends Vue {
 		let that = this
 		// TODO:[-] 24-05-21 此处修改为监听到 sites 发生变化，统一更新一次
 		let sitesRealdata: ObserveValueMidModel[] = []
-		that.allSiteRealdataList = []
+		that.selectedSiteRealdataList = []
 		/**
 		 * 1- 获取传入的 sites 共有集中 观测站位类型(station|fub)
 		 * 2- 根据不同的观测站位类型批量请求
@@ -566,7 +562,7 @@ export default class RealdataHomeView extends Vue {
 				}
 			})
 		}
-		that.allSiteRealdataList = sitesRealdata
+		that.selectedSiteRealdataList = sitesRealdata
 	}
 
 	/** TODO:[-] 24-05-07 加载指定站点的实况
@@ -628,12 +624,21 @@ export default class RealdataHomeView extends Vue {
 						console.log(`RealdataHomeView加载:${tempType}ing`)
 						res.data.map((s) => {
 							const tempCode: string = s.code
+							// TODO:[*] 24-08-01 对于d85的处理不放在此处进行
+							// const tempD85filter = that.getStationsD85List.filter((val) => {
+							// 	return val.code == tempCode
+							// })
+							// /** 当前 code 对应的d85差值 */
+							// const tempD85: number =
+							// 	tempD85filter.length > 0 ? tempD85filter[0].d85 : DEFAULT_VAL
 							const tempObsType: ObservationTypeEnum = s.obs_type
 							const tempObsValues: ObserveElementMidModel[] = s.observation_list.map(
 								(o) => {
-									const standardVals: (number | null)[] = fillDefaultVal2List<
+									let standardVals: (number | null)[] = fillDefaultVal2List<
 										number | null
 									>(o.val_list, DEFAULT_VAL_LIST)
+									// // TODO:[*] 24-08-01 此处加入对于所选站点实况-d85
+									// standardVals = standardVals.map((val) => val - tempD85)
 									return new ObserveElementMidModel(
 										o.station_code,
 										o.element_type,
@@ -659,7 +664,7 @@ export default class RealdataHomeView extends Vue {
 					`RealdataHomeView.vue -> allSiteRealdataList: 加载全部promises结束,count:${sitesRealdata.length}`
 				)
 				// TODO:[-] 24-06-12 引发后续bug的根源，之前是将此赋值放在整个 Promise 外侧引发了bug
-				that.allSiteRealdataList = sitesRealdata
+				that.selectedSiteRealdataList = sitesRealdata
 				// this.isLoadSiteFinished = true
 			})
 			.catch(() => {
@@ -676,13 +681,16 @@ export default class RealdataHomeView extends Vue {
 	/** TODO:[-] 24-06-14 清空 allSiteRealdataList 统一在此方法处执行 */
 	private clearSitesRealdata() {
 		console.log(`RealdataHomeView.vue -> clearSitesRealdata`)
-		this.allSiteRealdataList = []
+		this.selectedSiteRealdataList = []
 	}
 
-	/** 加载所有站点的基础信息集合 */
+	/** 加载所有站点的基础信息集合
+	 *  + 24-07-31 并通过为 vuex 赋值 d85 list
+	 */
 	loadAllStationBaseInfoList() {
 		const that = this
 		this.distStationBaseInfoList = []
+		let stationsD85List: { code: string; d85: number }[] = []
 		return loadDistStationBaseInfoList()
 			.then((res) => {
 				if (res.status == 200) {
@@ -713,6 +721,10 @@ export default class RealdataHomeView extends Vue {
 							ObservationTypeEnum.STATION
 						)
 						that.allSites.push(tempSite)
+						stationsD85List.push({
+							code: tempStationInstance.stationCode,
+							d85: temp.d85,
+						})
 					})
 				}
 			})
@@ -724,6 +736,8 @@ export default class RealdataHomeView extends Vue {
 			})
 			.finally(() => {
 				console.log('loadAllStationBaseInfoList over')
+				console.log('set stations d85 list!')
+				this.setStationsD85List(stationsD85List)
 			})
 	}
 
@@ -759,25 +773,20 @@ export default class RealdataHomeView extends Vue {
 			})}发生变化`
 		)
 		// TODO:[-] 24-06-20 此处加载的 start 与 end time 与传入的时间有歧义
-		// const startTs = moment(val.getStartDt).valueOf() / MS_UNIT
-		// const endTs = moment(val.getEndDt).valueOf() / MS_UNIT
-		// // TODO:[*] 24-06-20 加载各静态及统计信息之前由onDtOp监听并执行，现统一修改于onSitesOpts 顺序执行
-		// // this.initStatisticalData(startTs, endTs).then(() => {
-		// // 	this.loadSitesRealdata(val.getSites, startTs, endTs)
-		// // })
-		// // TODO:[*] 24-06-20 此处修改为加载统计数据与加载站点实况均加载完毕后再更新loaded开关
-		// Promise.all([
-		// 	this.initStatisticalData(startTs, endTs),
-		// 	this.loadSitesRealdata(val.getSites, startTs, endTs),
-		// ]).then(() => {
-		// 	this.setLoaded()
-		// })
 		this.initRealData(val.getStartDt, val.getEndDt, val.getSites)
 	}
 
 	/** 获取当前选定的站点 */
 	@Getter(GET_SITE, { namespace: 'station' })
 	getSites: SiteBaseDigestMidModel[]
+
+	/** 获取所有站点的d85高程差值 */
+	@Getter(GET_STATIONS_D85_LIST, { namespace: 'station' })
+	getStationsD85List: { code: string; d85: number }[]
+
+	/** 设置所有站点的d85高程差集合 */
+	@Mutation(SET_STATIONS_D85_LIST, { namespace: 'station' })
+	setStationsD85List: { (val: { code: string; d85: number }[]): void }
 
 	/** TODO:[*] 24-06-20
 	 * 根据起止时间加载
@@ -788,7 +797,7 @@ export default class RealdataHomeView extends Vue {
 	initStatisticalData(startTs: number, endTs: number): Promise<void> {
 		this.issueTs = startTs
 		this.endTs = endTs
-		// TODO:[*] 24-06-21 此处导致对子组件处理天文潮计算造成潜在的bug——此部分应放置在 onSitesOpts 统一执行
+		// TODO:[-] 24-06-21 此处导致对子组件处理天文潮计算造成潜在的bug——此部分应放置在 onSitesOpts 统一执行
 		return this.initLoad(startTs, endTs)
 	}
 
@@ -797,7 +806,7 @@ export default class RealdataHomeView extends Vue {
 	onDtOp(val: { getStartDt: Date; getEndDt: Date }) {
 		// this.issueTs = moment(val.getStartDt).valueOf() / MS_UNIT
 		// this.endTs = moment(val.getEndDt).valueOf() / MS_UNIT
-		// // TODO:[*] 24-06-21 此处导致对子组件处理天文潮计算造成潜在的bug——此部分应放置在 onSitesOpts 统一执行
+		// // TODO:[-] 24-06-21 此处导致对子组件处理天文潮计算造成潜在的bug——此部分应放置在 onSitesOpts 统一执行
 		// return this.initLoad()
 	}
 }

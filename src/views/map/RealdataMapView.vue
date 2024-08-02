@@ -248,7 +248,7 @@ export default class RealdataMapView extends Vue {
 	zoom = 6
 	center: number[] = [32.45, 125.8833]
 	url =
-		'https://map.geoq.cn/arcgis/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}'
+		'https://webrd04.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}'
 	// url = 'http://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png'
 	// TODO:[-] 20-11-09 新加入的 map 相关的一些基础静态配置
 	mapOptions: { preferCanvas: boolean; minZoom: number; maxZoom: number; render: any } = {
@@ -359,9 +359,8 @@ export default class RealdataMapView extends Vue {
 	): void {
 		// this.setStationCode(code)
 		this.pushStationsCodes(code)
-		// TODO:[*] 24-05-07 测试一下将SiteBaseDigestMidModel类型push至vuex数组中
-		// console.log(')')
-		// TODO:[*] 24-05-20 注意此处当点击了指定站点后，并为完全加载完查询的站点实况数据，就展开了site form，此时site form中的部分步骤就被执行，会存在数据未加载的情况
+		// TODO:[-] 24-05-07 测试一下将SiteBaseDigestMidModel类型push至vuex数组中
+		// TODO:[-] 24-05-20 注意此处当点击了指定站点后，并为完全加载完查询的站点实况数据，就展开了site form，此时site form中的部分步骤就被执行，会存在数据未加载的情况
 		this.pushSite(new SiteBaseDigestMidModel(code, obsType))
 		this.setShowStationSurgeForm(true)
 		// this.setObservationType(obsType)

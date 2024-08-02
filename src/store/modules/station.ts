@@ -18,6 +18,8 @@ import {
 	SET_SITE,
 	PUSH_SITE,
 	REMOVE_SITE,
+	GET_STATIONS_D85_LIST,
+	SET_STATIONS_D85_LIST,
 } from '../types'
 import { DEFAULT_STATION_CODE } from '@/const/default'
 import { StationIconLayerEnum } from '@/enum/map'
@@ -35,6 +37,8 @@ interface IStation {
 	observationType: StationIconLayerEnum
 	/** 站点摘要信息集合(code,type) */
 	siteBaseInfoList: SiteBaseDigestMidModel[]
+	/** TODO:[*] 24-07-31 海洋站d85集合 */
+	stationD85List: number[]
 }
 
 /** 常量 */
@@ -54,6 +58,7 @@ const state: IStation = {
 	observationType: StationIconLayerEnum.ICON_STATION,
 	/** 站点摘要信息集合(code,type) */
 	siteBaseInfoList: [],
+	stationD85List: [],
 }
 const getters = {
 	[GET_STATION_CODE](state: IStation): string {
@@ -80,6 +85,9 @@ const getters = {
 		})
 		console.log(`监听到vuex->station->siteBaseInfoList发生变化:[${codes}]`)
 		return state.siteBaseInfoList
+	},
+	[GET_STATIONS_D85_LIST](state: IStation): number[] {
+		return state.stationD85List
 	},
 }
 // 使用dispatch调用
@@ -120,6 +128,10 @@ const mutations = {
 	[SET_SITE](state: IStation, val: SiteBaseDigestMidModel[]): void {
 		state.siteBaseInfoList = val
 	},
+	[SET_STATIONS_D85_LIST](state: IStation, val: number[]): void {
+		state.stationD85List = val
+	},
+
 	/** TODO:[*] 24-07-02 加入长度限制——若超出长度则先进先出剔除 */
 	[PUSH_SITE](state: IStation, val: SiteBaseDigestMidModel): void {
 		if (state.siteBaseInfoList.filter((s) => s.stationCode == val.stationCode).length == 0) {

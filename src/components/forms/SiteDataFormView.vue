@@ -75,6 +75,7 @@ import DataChart2 from '@/components/charts/DataChart2.vue'
 import {
 	GET_SHOW_STATION_SURGE_FORM,
 	GET_STATIONS_CODES,
+	GET_STATIONS_D85_LIST,
 	SET_SHOW_STATION_SURGE_FORM,
 } from '@/store/types'
 import { DistStationSurgeListMidModel } from '@/middle_model/surge'
@@ -84,6 +85,7 @@ import {
 	DEFAULT_STATION_CODE,
 	DEFAULT_STATION_NAME,
 	DEFAULT_SURGE_VAL,
+	DEFAULT_VAL,
 } from '@/const/default'
 import { AlertTideEnum } from '@/enum/surge'
 import { DistStationWindListMidModel } from '@/middle_model/wind'
@@ -301,7 +303,7 @@ export default class SiteDataFormView extends Vue {
 		this.selectedSite = site
 		this.subTitleIndex = selectedIndex
 
-		// TODO:[*] 24-07-01 此处加入 obsVals对于elementType的生序排列
+		// TODO:[-] 24-07-01 此处加入 obsVals对于elementType的生序排列
 		if (siteRealdata.length > 0) {
 			this.obsVals = siteRealdata[0].obsVals.sort((a, b) => {
 				return a.elementType.valueOf() - b.elementType.valueOf()
@@ -318,11 +320,7 @@ export default class SiteDataFormView extends Vue {
 			const tempFilterAlertRes = this.distStationsAlertlevelList.filter(
 				(temp) => temp.station_code == code
 			)
-			// const tempFilterRealdataRes = this.distStationRealdataList.filter(
-			// 	(temp) => temp.stationCode == code
-			// )
-
-			// TODO:[*] 24-06-20 变更为通过 allSiteRealdataList 过滤实况
+			// TODO:[-] 24-06-20 变更为通过 allSiteRealdataList 过滤实况
 			const tempFilterRealdataRes = this.allSiteRealdataList.filter((temp) => {
 				return temp.code == code
 			})
@@ -356,16 +354,26 @@ export default class SiteDataFormView extends Vue {
 				return temp.elementType == ObserveElementEnum.WD
 			})
 
+			// TODO:[*] 24-08-01 注意天文潮与实况均需要-d85(增水不影响)
+			const d85filter = this.getStationsD85List.filter((val) => {
+				return val.code == code
+			})
+			/** 当前站点(code)对应的d85差值 */
+			const d85: number = d85filter.length > 0 ? d85filter[0].d85 : DEFAULT_VAL
+
 			// step2: 为天文潮与实况赋值
-			this.realdataList = tempSurgeFilter.length > 0 ? tempSurgeFilter[0].valList : []
-			this.tideList =
+			let tempRealdataList = tempSurgeFilter.length > 0 ? tempSurgeFilter[0].valList : []
+			/** 标准化后的总潮位集合 */
+			// const standardRealDataList = tempRealdataList.map((val) => val - d85)
+			const standardRealDataList = tempRealdataList
+			this.realdataList = standardRealDataList //
+			let tempTideList =
 				tempFilterAstronmictideRes.length > 0 ? tempFilterAstronmictideRes[0].surgeList : []
-			// TODO:[*] 24-06-20 时间戳数组更新逻辑有误. 修改为根据 tempSurgeFilter -> 获取 tsList
+			// const standardTideList = tempTideList.map((val) => val - d85)
+			const standardTideList = tempTideList
+			this.tideList = standardTideList //
 
-			// this.tsList = tempFilterAstronmictideRes[0].tsList.map((ts) => {
-			// 	return ts
-			// })
-
+			// TODO:[-] 24-06-20 时间戳数组更新逻辑有误. 修改为根据 tempSurgeFilter -> 获取 tsList
 			this.tsList = tempSurgeFilter.length > 0 ? tempSurgeFilter[0].tsList : []
 
 			this.surgeList = this.tideList.map((ele, index) => {
@@ -441,7 +449,7 @@ export default class SiteDataFormView extends Vue {
 		 */
 
 		if (val.isFinished) {
-			// TODO:[*] 24-06-20 此处出现一个bug: 当选中某个站点切换起止时间，会触发两次
+			// TODO:[-] 24-06-20 此处出现一个bug: 当选中某个站点切换起止时间，会触发两次
 			console.log(
 				`SiteDataFormView -> onSites :isFinished:${val.isFinished}, sites count:${
 					val.sites.length
@@ -484,6 +492,10 @@ export default class SiteDataFormView extends Vue {
 	clearAlertLevelList(): void {
 		this.alertlevelList = []
 	}
+
+	/** 获取所有站点的d85高程差值 */
+	@Getter(GET_STATIONS_D85_LIST, { namespace: 'station' })
+	getStationsD85List: { code: string; d85: number }[]
 }
 </script>
 <style scoped lang="less">

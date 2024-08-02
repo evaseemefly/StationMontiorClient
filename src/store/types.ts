@@ -363,3 +363,8 @@ export const SET_START_DT = 'SET_START_DT'
 export const GET_END_DT = 'GET_END_DT'
 /** 设置起始时间 */
 export const SET_END_DT = 'SET_END_DT'
+
+/** 设置所有站点的D85集合 */
+export const SET_STATIONS_D85_LIST = 'SET_STATIONS_D85_LIST'
+/** 获取所有站点的D85集合 */
+export const GET_STATIONS_D85_LIST = 'GET_STATIONS_D85_LIST'
