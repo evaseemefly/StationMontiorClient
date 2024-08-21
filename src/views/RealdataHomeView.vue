@@ -122,6 +122,7 @@ import {
 	loadDistStationsAlertLevelList,
 	loadStationsRealdataPerclock,
 } from '@/api/station'
+import { getConsulKV } from '@/api/opts'
 import { loadAllFubsBaseInfo, loadFubsRealdataPerclock } from '@/api/fub'
 import { loadSitesRealdataListPerclock } from '@/api/realdata'
 
@@ -281,6 +282,9 @@ export default class RealdataHomeView extends Vue {
 				// TODO:[-] 24-06-27 注意加载静态信息(stations | fubs)信息后不修改加载完毕变量,统计信息未加载完毕
 				// this.setLoaded()
 			})
+		// getConsulKV('station_base_config').then((res) => {
+		// 	console.log(`获取consul中的kv值:${res.data}`)
+		// })
 	}
 
 	/** TODO:[*] 24-06-20 设置子组件加载完毕开关(执行则全部加载完毕) */

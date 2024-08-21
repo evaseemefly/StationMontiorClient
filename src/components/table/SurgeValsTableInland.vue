@@ -169,7 +169,7 @@ export default class SurgeValsTableInLand extends Vue {
 	 * 需要由父组件传入
 	 */
 	@Prop({ type: Array, default: [] })
-	alertLevels: { tide: number; alert: AlertTideEnum }[]
+	alertLevels: { tide: number | undefined; alert: AlertTideEnum }[]
 
 	/** 对应的预报时间戳集合 */
 	@Prop({ type: Array, default: [] })
@@ -203,13 +203,18 @@ export default class SurgeValsTableInLand extends Vue {
 	/** 获取当前潮值对应的警戒颜色 */
 	toAlertColor(val: number): string {
 		/** 升序排列的 警戒潮位潮值集合 */
+		// TODO:[*] 24-08-12 此处有可能 alertLevels 会有 undefined 的情况需要过滤(加入filter过滤)
 		const alertTides: number[] = this.alertLevels
+			.filter((temp) => {
+				return temp.tide !== undefined
+			})
 			.map((temp) => {
 				return temp.tide
 			})
 			.sort((a, b) => {
 				return a - b
 			})
+
 		return filterAlertSurgeColorStr(val, alertTides)
 	}
 

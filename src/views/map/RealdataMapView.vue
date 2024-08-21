@@ -247,8 +247,9 @@ import {
 export default class RealdataMapView extends Vue {
 	zoom = 6
 	center: number[] = [32.45, 125.8833]
-	url =
-		'https://webrd04.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}'
+	url = 'http://128.5.9.79:82/map/{z}/{x}/{y}.png'
+	// url =
+	// 	'https://webrd04.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}'
 	// url = 'http://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png'
 	// TODO:[-] 20-11-09 新加入的 map 相关的一些基础静态配置
 	mapOptions: { preferCanvas: boolean; minZoom: number; maxZoom: number; render: any } = {

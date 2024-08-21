@@ -17,7 +17,7 @@ import 'vue-interact/dist/vue-interact.css'
 // import 'animate.css'
 // TODO[*] 24-05-23  找不到模块“animate.css”或其相应的类型声明。
 // 在 /src/shims-vue.d.ts 中加入 declare module 'animate.css'
-import animate from 'animate.css'
+// import animate from 'animate.css'
 // import 'animate.css'
 
 import { library } from '@fortawesome/fontawesome-svg-core'
@@ -25,7 +25,7 @@ import { faHatWizard } from '@fortawesome/free-solid-svg-icons'
 
 Vue.use(ElementUI)
 Vue.use(VueInteract)
-Vue.use(animate)
+// Vue.use(animate)
 
 new Vue({
 	router,

@@ -5,8 +5,10 @@
 </template>
 <script lang="ts">
 import { SET_END_DT, SET_START_DT } from '@/store/types'
+import moment from 'moment'
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator'
 import { Mutation } from 'vuex-class'
+
 @Component({})
 export default class App extends Vue {
 	created() {
@@ -17,8 +19,11 @@ export default class App extends Vue {
 	initDt() {
 		// TODO:[*] 24-07-01 注意若使用 new Date('2024-02-20') 创建的时间为 2024-02-20 08:00 需要手动声明hh:mm
 		// TODO:[*] 24-07-01 此处需要修改为当前时间,结束时间为+3days
-		const startDt = new Date('2024-02-20 00:00')
-		const endDt = new Date('2024-02-22 00:00')
+		const nowDt = new Date()
+		const nowTs = new Date().setHours(0, 0, 0, 0)
+		const startDt = moment(nowTs).subtract(3, 'days').toDate()
+		// TODO:[*] 24-08-20 对于截止时间要 day+1
+		const endDt = moment(nowTs).add(1, 'days').toDate()
 		this.commitDtRange(startDt, endDt)
 	}
 
