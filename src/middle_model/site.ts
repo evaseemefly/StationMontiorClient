@@ -13,6 +13,8 @@ class SiteBaseInfoMidModel {
 	sort = -1
 	/** 观测站点类型 : station|fub */
 	observationType: ObservationTypeEnum = ObservationTypeEnum.STATION
+	/** 是否在使用中 */
+	isInUsed = true
 
 	/**
 	 * 观测站基础信息mid model
@@ -29,7 +31,8 @@ class SiteBaseInfoMidModel {
 		lat: number,
 		lon: number,
 		obsType: ObservationTypeEnum,
-		sort = -1
+		sort = -1,
+		inUsed = true
 	) {
 		// this.rid = rid
 		this.stationCode = code
@@ -38,6 +41,7 @@ class SiteBaseInfoMidModel {
 		this.lon = lon
 		this.observationType = obsType
 		this.sort = sort
+		this.isInUsed = inUsed
 	}
 }
 

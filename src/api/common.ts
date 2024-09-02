@@ -3,7 +3,7 @@
 // export const host = 'http://128.5.9.79:8095'
 // export const host = 'http://128.5.9.79:8086'
 // export const host = 'http://localhost:8086'
-export const host = 'http://128.5.9.79:8086'
+export const host = 'http://128.5.9.79:8086' //内网上线地址
 
 /** @type {*} 21-03-05 + 新添加的用来加载 geoserver的host */
 // export const hostGeo = 'http://128.5.10.21:8082/geoserver/'

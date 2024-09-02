@@ -3,7 +3,7 @@
 		<div class="progress-header">{{ title }}</div>
 		<div class="progress-line-part">
 			<div class="process-line" :style="{ width: lineWidth + 'px' }" :class="[alertLevelStr]">
-				{{ value | formatSurgeFixed2Str }}
+				{{ value | formatSurgeFiexIntStr }}
 			</div>
 		</div>
 		<div class="progress-footer">{{ footerText | fortmatData2MDHM }}</div>
@@ -12,10 +12,22 @@
 <script lang="ts">
 import { AlertTideEnum } from '@/enum/surge'
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator'
-import { filterStationAlertTideVal, formatSurgeFixed2Str, fortmatData2MDHM } from '@/util/filter'
+import {
+	filterStationAlertTideVal,
+	formatSurgeFixed2Str,
+	formatSurgeFiexIntStr,
+	fortmatData2MDHM,
+} from '@/util/filter'
 
 /** 极值详情进度栏 */
-@Component({ filters: { filterStationAlertTideVal, fortmatData2MDHM, formatSurgeFixed2Str } })
+@Component({
+	filters: {
+		filterStationAlertTideVal,
+		fortmatData2MDHM,
+		formatSurgeFixed2Str,
+		formatSurgeFiexIntStr,
+	},
+})
 export default class ExtremumDetailProgressView extends Vue {
 	/** 显示的标题-增水极值等 */
 	@Prop({ type: String, default: '站点', required: true })

@@ -500,6 +500,10 @@ const formatSurgeFixed2Str = (val: number | null): string => {
 	return surgeStr
 }
 
+const formatSurgeFiexIntStr = (val: number | null): string => {
+	return formatSurgeFixed2NumStr(0, val)
+}
+
 const formatSurgeFiex1NumStr = (val: number | null): string => {
 	return formatSurgeFixed2NumStr(1, val)
 }
@@ -607,6 +611,7 @@ export {
 	formatDir2Int,
 	formatSecond2Hour,
 	formatSurgeFixed2Str,
+	formatSurgeFiexIntStr,
 	formatContry2Str,
 	filterWaveColor,
 	filterSpiderStationStatusCls,

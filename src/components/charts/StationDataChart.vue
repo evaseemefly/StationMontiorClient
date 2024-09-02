@@ -34,36 +34,7 @@
 						></AlertLevelRowView>
 					</div>
 				</div>
-
-				<!-- <h3>{{ stationBaseInfo.station_name }} 站</h3>
-				<div>
-					<div class="row">
-						<span>所属国家_en</span><span>{{ stationBaseInfo.country_en }}</span>
-					</div>
-					<div class="row">
-						<span>所属区域_en</span><span>{{ stationBaseInfo.val_en }}</span>
-					</div>
-					<div class="row">
-						<span>所属区域_ch</span><span>{{ stationBaseInfo.val_ch }}</span>
-					</div>
-
-					<div class="row">
-						<span>位置</span
-						><span>{{ stationBaseInfo.lat }} | {{ stationBaseInfo.lon }}</span>
-					</div>
-					<div class="row">
-						<span>发布时间</span><span>{{ issueTs | formatTs2DayHM }}</span>
-					</div>
-				</div> -->
 			</div>
-			<!-- <div class="info-card forecast-info">
-				<h3>预报信息</h3>
-				<div>
-					<div class="row"><span>潮位</span><span>-</span></div>
-					<div class="row"><span>天文潮位</span><span>-</span></div>
-					<div class="row"><span>时间</span><span>-</span></div>
-				</div>
-			</div> -->
 		</div>
 		<div class="right-section">
 			<!-- 对于非集合路径才提供叠加天文潮位的选项 -->

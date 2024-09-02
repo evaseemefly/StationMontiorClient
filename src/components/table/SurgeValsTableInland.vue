@@ -56,7 +56,7 @@
 						@mouseover="toSetHoverIndex(index)"
 						:style="{ background: toAlertColor(item) }"
 					>
-						{{ item | formatSurgeFixed2Str }}
+						{{ item | formatSurgeFiexIntStr }}
 					</td>
 				</tr>
 				<tr>
@@ -67,7 +67,7 @@
 						:class="index === hoverIndex ? 'activate' : 'un-activate'"
 						@mouseover="toSetHoverIndex(index)"
 					>
-						{{ item | formatSurgeFixed2Str }}
+						{{ item | formatSurgeFiexIntStr }}
 					</td>
 				</tr>
 				<tr>
@@ -79,7 +79,7 @@
 						:class="index === hoverIndex ? 'activate' : 'un-activate'"
 						@mouseover="toSetHoverIndex(index)"
 					>
-						{{ item | formatSurgeFixed2Str }}
+						{{ item | formatSurgeFiexIntStr }}
 					</td>
 				</tr>
 				<tr>
@@ -91,7 +91,7 @@
 						:class="index === hoverIndex ? 'activate' : 'un-activate'"
 						@mouseover="toSetHoverIndex(index)"
 					>
-						{{ item | formatSurgeFixed2Str }}
+						{{ item | formatSurgeFiex1NumStr }}
 					</td>
 				</tr>
 				<tr>
@@ -121,7 +121,8 @@
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator'
 import {
 	formatDir2Int,
-	formatSurgeFixed2Str,
+	formatSurgeFiexIntStr,
+	formatSurgeFiex1NumStr,
 	filterSurgeColorStr,
 	filterWindColorStr,
 	formatDate2DayHM,
@@ -133,7 +134,15 @@ import { AlertTideEnum } from '@/enum/surge'
 import { MS_UNIT } from '@/const/unit'
 import { ObserveElementEnum } from '@/enum/element'
 /** 风暴潮 tab */
-@Component({ filters: { formatDir2Int, formatSurgeFixed2Str, formatDate2DayHM, formatTs2DayHM } })
+@Component({
+	filters: {
+		formatDir2Int,
+		formatSurgeFiexIntStr,
+		formatSurgeFiex1NumStr,
+		formatDate2DayHM,
+		formatTs2DayHM,
+	},
+})
 export default class SurgeValsTableInLand extends Vue {
 	MAX_SPLIT_LIST_COUNT = 240
 	MAX_WS_COUNT = 240
