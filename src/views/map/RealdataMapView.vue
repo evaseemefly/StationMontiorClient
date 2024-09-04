@@ -29,13 +29,13 @@
 			></l-wms-tile-layer>
 
 			<!-- TODO:[-] 20-08-26 新加入的世界国境线 -->
-			<l-wms-tile-layer
+			<!-- <l-wms-tile-layer
 				:baseUrl="worldLineWMS.url"
 				:layers="worldLineWMS.options.layer"
 				:format="worldLineWMS.options.format"
 				:transparent="worldLineWMS.options.transparent"
 				:zIndex="worldLineWMS.options.zindex"
-			></l-wms-tile-layer>
+			></l-wms-tile-layer> -->
 
 			<LCircle
 				:lat-lng="currentLatlng"
@@ -567,6 +567,11 @@ export default class RealdataMapView extends Vue {
 			this.sitesInfoList,
 			(msg: { code: string; name: string; iconType: IconTypeEnum }) => {
 				console.log(`当前点击了code:${msg.code},name:${msg.name},layerType:${msg.iconType}`)
+				// TODO:[*] 24-09-03 若为未使用站点则提示，不加载
+				if (msg.iconType == IconTypeEnum.STATION_STATICS_UNUSED_ICON) {
+					that.$alert(`站点:${msg.name}目前未使用，无法加载!`)
+					return
+				}
 				/** 当前site的站点类型 */
 				const obsType = formatIconTypeEnum2ObservationTypeEnum(msg.iconType)
 				that.loadSiteAndShow(msg.code, obsType)

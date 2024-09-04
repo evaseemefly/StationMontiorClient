@@ -1,5 +1,6 @@
 import { IconTypeEnum, ObservationTypeEnum } from '@/enum/common'
 import { StationIconLayerEnum } from '@/enum/map'
+import { Icon } from 'leaflet'
 
 /**
  * @description 将 icon类型枚举 转换为 观测站类型枚举
@@ -26,11 +27,15 @@ const formatIconTypeEnum2ObservationTypeEnum = (val: IconTypeEnum): ObservationT
 /**
  * @description 将 观测站类型枚举 转换为 icon类型枚举
  * @author evaseemefly
- * @date 2024/05/07
+ * @date 2024/09/02
  * @param {ObservationTypeEnum} val
+ * @param {boolean} [isUsed=true] 是否是使用中的站点
  * @returns {*}  {IconTypeEnum}
  */
-const formatObservationTypeEnum2IconTypeEnum = (val: ObservationTypeEnum): IconTypeEnum => {
+const formatObservationTypeEnum2IconTypeEnum = (
+	val: ObservationTypeEnum,
+	isUsed = true
+): IconTypeEnum => {
 	let tempIconType: IconTypeEnum = IconTypeEnum.STATION_STATICS_ICON
 	switch (val) {
 		case ObservationTypeEnum.STATION:
@@ -41,6 +46,10 @@ const formatObservationTypeEnum2IconTypeEnum = (val: ObservationTypeEnum): IconT
 			break
 		default:
 			break
+	}
+	// 24-09-02 加入对于不使用的站点的判断
+	if (tempIconType == IconTypeEnum.STATION_STATICS_ICON && isUsed == false) {
+		tempIconType = IconTypeEnum.STATION_STATICS_UNUSED_ICON
 	}
 	return tempIconType
 }

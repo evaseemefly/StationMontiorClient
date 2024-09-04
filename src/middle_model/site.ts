@@ -3,6 +3,7 @@ import { ObservationTypeEnum } from '@/enum/common'
 
 /**
  * 站点基础信息
+ * + 24-09-02 加入了 isInUsed
  */
 class SiteBaseInfoMidModel {
 	// rid: number

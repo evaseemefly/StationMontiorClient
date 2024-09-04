@@ -253,20 +253,43 @@ class IconStaticsCirle implements IIconImplement {
 	toHtml(): string {
 		// 固定宽度 cirle icon 半径和高度为固定值
 		const fixedRadius = 8
+		// TODO:[*] 24-09-02 不需要在 addStaticsIcon2Map 方法中指定 className ，改为在此实体对象中动态生成 div 标签，并在标签中动态添加 class
 		const divHtml = `<div class="my-leaflet-pulsing-marker" >              
-              <div class="my-leaflet-pulsing-icon ${this.getAlarmColor()}" style="width: ${fixedRadius}px;height:${fixedRadius}px;left:${
+              <div class="my-leaflet-pulsing-icon ${this.getClassName()}" style="width: ${fixedRadius}px;height:${fixedRadius}px;left:${
 			-fixedRadius / 2
 		}px;top:${-fixedRadius / 2}px"></div>
             </div>`
 		return divHtml
 	}
 
+	/**
+	 * @description TODO:[*] 24-09-02
+	 * 由 this.iconType:IconTypeEnum 确定对应的中心填充颜色
+	 * @author evaseemefly
+	 * @date 2024/09/02
+	 * @returns {*}  {string}
+	 * @memberof IconStaticsCirle
+	 */
 	getAlarmColor(): string {
 		const colorStr = '#000000'
 		return colorStr
 	}
 	getClassName(): string {
-		return ''
+		let defaultClassName = 'default_icon'
+		switch (this.iconType) {
+			case IconTypeEnum.STATION_STATICS_ICON:
+				defaultClassName = 'station_static_inused'
+				break
+			case IconTypeEnum.STATION_STATICS_UNUSED_ICON:
+				defaultClassName = 'station_static_unused'
+				break
+			case IconTypeEnum.FUB_ICON:
+				defaultClassName = 'fub_static_inused'
+				break
+			default:
+				break
+		}
+		return defaultClassName
 		// throw new Error('Method not implemented.')
 	}
 }
@@ -989,7 +1012,10 @@ const addStaticSitesIcon2Map = (
 	const icons: IIconImplement[] = []
 	for (const tempSite of sitesList) {
 		let tempIconType: IconTypeEnum = IconTypeEnum.STATION_STATICS_ICON
-		tempIconType = formatObservationTypeEnum2IconTypeEnum(tempSite.observationType)
+		tempIconType = formatObservationTypeEnum2IconTypeEnum(
+			tempSite.observationType,
+			tempSite.isInUsed
+		)
 		const tempIcon: IconStaticsCirle = new IconStaticsCirle(
 			tempSite.stationCode,
 			tempSite.stationName,
@@ -1043,18 +1069,34 @@ const addStaticsIcon2Map = (
 		const tempStationName = temp.name
 		const tempIconType = temp.iconType
 
+		/** 当前icon的 class 样式名称 */
+		let tempIconClsName = 'icon_static_default'
+
+		switch (tempIconType) {
+			case IconTypeEnum.STATION_STATICS_ICON:
+				tempIconClsName = 'station_in_used'
+				break
+			case IconTypeEnum.STATION_STATICS_UNUSED_ICON:
+				tempIconClsName = 'station_unused'
+				break
+			default:
+				tempIconClsName = 'icon_static_default'
+				break
+		}
+
 		/** divIcon实例,用来创建实例调用 togHtml 与 getClsName */
 		const iconTitleOnly = new IconOnlyTitle(temp.name, temp.code)
 		/** 只有标题的icon */
 		const titleIcon: L.DivIcon = L.divIcon({
-			className: `surge_pulsing_icon_default ${iconTitleOnly.getClassName()}`,
+			className: `surge_pulsing_icon_default ${iconTitleOnly.getClassName()} ${tempIconClsName}`,
 			html: iconTitleOnly.toHtml(),
 			iconAnchor: [-20, 30],
 		})
 
 		/** 站点(fub) div icon实例 */
+		// TODO:[*] 24-09-02 注意在 className 中不需要再加入 ${temp.getClassName()}—— 已经由 IconStaticsCirle.toHtml 中动态修改 div 标签及其中的 class !
 		const stationDivIcon = L.divIcon({
-			className: `surge_pulsing_icon_default ${temp.getClassName()}`,
+			className: `surge_pulsing_icon_default  `,
 			html: temp.toHtml(),
 			// 目前需要此部分，因为会造成 位置的位移
 			// 坐标，[相对于原点的水平位置（左加右减），相对原点的垂直位置（上加下减）]

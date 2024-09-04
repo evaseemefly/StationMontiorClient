@@ -718,19 +718,24 @@ export default class RealdataHomeView extends Vue {
 								temp.sort
 							)
 							this.distStationBaseInfoList.push(tempStationInstance)
-							const tempSite: SiteBaseInfoMidModel = new SiteBaseInfoMidModel(
-								temp.code,
-								temp.name,
-								temp.lat,
-								temp.lon,
-								ObservationTypeEnum.STATION
-							)
-							that.allSites.push(tempSite)
+
 							stationsD85List.push({
 								code: tempStationInstance.stationCode,
 								d85: temp.d85,
 							})
+						} else {
+							console.log(`未使用的站点:${temp.name}`)
 						}
+						const tempSite: SiteBaseInfoMidModel = new SiteBaseInfoMidModel(
+							temp.code,
+							temp.name,
+							temp.lat,
+							temp.lon,
+							ObservationTypeEnum.STATION,
+							temp.sort,
+							temp.is_in_use
+						)
+						that.allSites.push(tempSite)
 					})
 				}
 			})

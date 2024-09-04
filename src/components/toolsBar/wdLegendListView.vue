@@ -2,7 +2,8 @@
 	<div id="legend_list">
 		<SwitchBackgroundMap></SwitchBackgroundMap>
 		<!-- <TyphoonLevelLegend></TyphoonLevelLegend> -->
-		<StationSurgeLevelLegengInland></StationSurgeLevelLegengInland>
+		<!-- <StationSurgeLevelLegengInland></StationSurgeLevelLegengInland> -->
+		<SiteCategoryLegend></SiteCategoryLegend>
 		<GirdColorBar></GirdColorBar>
 		<RasterColorBar></RasterColorBar>
 	</div>
@@ -15,14 +16,15 @@ import TyphoonLevelLegend from '@/components/toolsBar/typhoonLevelLegend.vue'
 import StationSurgeLevelLegengInland from '@/components/toolsBar/stationLevelLegendInland.vue'
 import GirdColorBar from '@/components/bars/gridColorBar.vue'
 import RasterColorBar from '@/components/bars/rasterColorBar.vue'
+import SiteCategoryLegend from '@/components/toolsBar/siteCategoryLegend.vue'
 /** 图例集合汇总视图 */
 @Component({
 	components: {
 		SwitchBackgroundMap,
 		TyphoonLevelLegend,
-		StationSurgeLevelLegengInland,
 		GirdColorBar,
 		RasterColorBar,
+		SiteCategoryLegend,
 	},
 })
 export default class WdLegendListView extends Vue {}

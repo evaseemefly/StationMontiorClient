@@ -34,6 +34,8 @@ export enum IconTypeEnum {
 
 	/** 海洋站静态 icon */
 	STATION_STATICS_ICON,
+	/** 海洋站静态(不使用的站点) */
+	STATION_STATICS_UNUSED_ICON,
 }
 
 /**
