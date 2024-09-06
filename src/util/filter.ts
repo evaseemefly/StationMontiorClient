@@ -5,6 +5,8 @@ import {
 	DEFAULT_PRODUCT_TYPE_NAME,
 	DEFAULT_SURGE_VAL,
 	DEFAULT_VAL,
+	MAX_SURGE,
+	MAX_WS,
 } from '@/const/default'
 import { TyphoonLevelEnum } from '@/enum/typhoon'
 import { LayerTypeEnum } from '@/enum/map'
@@ -215,6 +217,59 @@ const filterSurgeAlarmColor = (val: number): string => {
 		default:
 			break
 	}
+	return colorStr
+}
+
+/**
+ * 将观测值进行标准化
+ * 对于最大风速与风速超出阈值的返回 DEFAULT_VAL
+ * @param vals
+ * @param elementType
+ * @returns
+ */
+const standardValSingular = (vals: number[], elementType: ObserveElementEnum) => {
+	let filteredVals: number[] = []
+	if (elementType === ObserveElementEnum.WS || elementType === ObserveElementEnum.WSM) {
+		filteredVals = vals.map((v) => {
+			if (v > MAX_WS) {
+				return null
+			} else {
+				return v
+			}
+		})
+	}
+	return filteredVals
+}
+
+/** TODO:[-] 24-09-06 将潮位数据进行标准化
+ * > MAX_SURGE 的赋值为null
+ */
+const standardSurgeSingular = (
+	vals: number[],
+	elementType: ObserveElementEnum = ObserveElementEnum.WL
+) => {
+	let filteredVals: number[] = []
+	if (elementType === ObserveElementEnum.WL) {
+		filteredVals = vals.map((v) => {
+			if (v > MAX_SURGE) {
+				return null
+			} else {
+				return v
+			}
+		})
+	}
+	return filteredVals
+}
+
+/**
+ * @description 静态色标——'#153C83'
+ * @author evaseemefly
+ * @date 2024/09/04
+ * @param {string} [val='#153C83']
+ * @returns {*}  {string}
+ */
+const filterStaticColor = (val: number): string => {
+	const colorStr = '#153C83'
 	return colorStr
 }
 
@@ -500,6 +555,27 @@ const formatSurgeFixed2Str = (val: number | null): string => {
 	return surgeStr
 }
 
+/**
+ * @description 24-09-06 新加入的非矢量要素过滤函数
+ * @author evaseemefly
+ * @date 2024/09/06
+ * @param {number} val
+ * @param {ObserveElementEnum} elementType
+ */
+const formatUnVectorFixed2Str = (val: number, elementType: ObserveElementEnum) => {
+	let formatStr = '-'
+	if (elementType === ObserveElementEnum.WS || elementType === ObserveElementEnum.WSM) {
+		if (val > MAX_WS) {
+			formatStr = '*'
+		} else {
+			formatStr = formatSurgeFixed2Str(val)
+		}
+	} else {
+		formatStr = formatSurgeFixed2Str(val)
+	}
+	return formatStr
+}
+
 const formatSurgeFiexIntStr = (val: number | null): string => {
 	return formatSurgeFixed2NumStr(0, val)
 }
@@ -625,4 +701,8 @@ export {
 	formatObsType2Name,
 	filterBPColorStr,
 	fillDefaultVal2List,
+	filterStaticColor,
+	formatUnVectorFixed2Str,
+	standardValSingular,
+	standardSurgeSingular,
 }

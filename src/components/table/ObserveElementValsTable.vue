@@ -42,8 +42,12 @@
 						:style="{ background: obsVal2Color(item, itemObs.elementType) }"
 					>
 						<!-- Error in render: "TypeError: Cannot read properties of undefined (reading 'WD')" -->
-						<span v-if="!isVector(itemObs, item)">{{
+						<!-- <span v-if="!isVector(itemObs, item)">{{
 							item | formatSurgeFixed2Str
+						}}</span> -->
+						<!-- TODO:[-] 24-09-06 加入了对于最大风速上限的设置 -->
+						<span v-if="!isVector(itemObs, item)">{{
+							formatUnVectorFixed2Str(item, itemObs.elementType)
 						}}</span>
 
 						<div
@@ -74,6 +78,8 @@ import {
 	filterWaveColor,
 	formatObsType2Name,
 	filterBPColorStr,
+	filterStaticColor,
+	formatUnVectorFixed2Str,
 } from '@/util/filter'
 import { ObserveElementEnum } from '@/enum/element'
 import { DEFAULT_VAL_LIST } from '@/const/default'
@@ -112,10 +118,13 @@ export default class ObserveElementValsTableView extends Vue {
 
 	/** TODO:[-] 24-05-10 根据观测值及要素类型获取线性色标的hex */
 	obsVal2Color(val: number, obsType: ObserveElementEnum): string {
-		let colorScaleFunc = filterSurgeColorStr
+		let colorScaleFunc = filterStaticColor
 		switch (obsType) {
 			case ObserveElementEnum.WS:
 				colorScaleFunc = filterWindColorStr
+				break
+			case ObserveElementEnum.WD:
+				colorScaleFunc = filterStaticColor
 				break
 			case ObserveElementEnum.WSM:
 				colorScaleFunc = filterWindColorStr
@@ -131,6 +140,11 @@ export default class ObserveElementValsTableView extends Vue {
 		}
 		const colorStr: string = colorScaleFunc(val)
 		return colorStr
+	}
+
+	/** TODO:[-] 24-09-06  新加入的非矢量要素过滤函数 */
+	formatUnVectorFixed2Str(val: number, elementType: ObserveElementEnum): string {
+		return formatUnVectorFixed2Str(val, elementType)
 	}
 
 	toSetHoverIndex(index: number): void {}

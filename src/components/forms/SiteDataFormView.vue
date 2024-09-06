@@ -93,6 +93,7 @@ import { ObservationTypeEnum } from '@/enum/common'
 import { ObserveElementEnum } from '@/enum/element'
 import { ObserveElementMidModel, ObserveValueMidModel } from '@/middle_model/obs'
 import { SiteBaseDigestMidModel, SiteBaseInfoMidModel } from '@/middle_model/site'
+import { standardSurgeSingular } from '@/util/filter'
 // import DataChart1 from '../charts/DataChart1.vue'
 /** + 24-03-21 海洋站数据显示form 包含 tabs 以及 charts 组件 */
 @Component({ components: { StationDataChart, FubDataChart, DataChart1, DataChart2 } })
@@ -365,7 +366,8 @@ export default class SiteDataFormView extends Vue {
 			let tempRealdataList = tempSurgeFilter.length > 0 ? tempSurgeFilter[0].valList : []
 			/** 标准化后的总潮位集合 */
 			// const standardRealDataList = tempRealdataList.map((val) => val - d85)
-			const standardRealDataList = tempRealdataList
+			// TODO:[-] 24-09-06 加入对实况进行标准化
+			const standardRealDataList = standardSurgeSingular(tempRealdataList)
 			this.realdataList = standardRealDataList //
 			let tempTideList =
 				tempFilterAstronmictideRes.length > 0 ? tempFilterAstronmictideRes[0].surgeList : []

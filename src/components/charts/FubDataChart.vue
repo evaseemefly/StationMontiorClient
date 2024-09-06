@@ -48,7 +48,7 @@ import { Component, Prop, Vue, Watch } from 'vue-property-decorator'
 import ObserveElementValsTableView from '@/components/table/ObserveElementValsTable.vue'
 import { ObserveElementEnum, WeatherKindEnum } from '@/enum/element'
 import { number } from 'echarts'
-import { fortmatData2YMDHM } from '@/util/filter'
+import { fortmatData2YMDHM, standardValSingular } from '@/util/filter'
 import { getDate } from '@/util/dateUtil'
 
 /** fub data chart */
@@ -178,20 +178,25 @@ export default class FubDataChart extends Vue {
 		})
 		// 加载最大风速以及风速
 		const tsList: number[] = filterWindRes[0].tsList
+
 		// 设置最大值
 		let maxVal = 0
 		let maxMin = 999
 		const obsVals: { yList: number[]; fieldName: ObserveElementEnum }[] = filterWindRes.map(
 			(temp) => {
-				const tempMax: number = Math.max(...temp.valList)
-				const tempMin: number = Math.min(...temp.valList)
+				// TODO:[*] 24-09-06 对数据进行清洗
+				/** TODO:[-] 24-09-06 经过标准化处理后的观测数组 */
+				let tempVals: number[] = []
+				tempVals = standardValSingular(temp.valList, temp.elementType)
+				const tempMax: number = Math.max(...tempVals)
+				const tempMin: number = Math.min(...tempVals)
 				if (tempMax > maxVal) {
 					maxVal = tempMax
 				}
 				if (tempMin < maxMin) {
 					maxMin = tempMin
 				}
-				return { fieldName: temp.elementType, yList: temp.valList }
+				return { fieldName: temp.elementType, yList: tempVals }
 			}
 		)
 		this.yAxisMax = maxVal

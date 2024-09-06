@@ -818,7 +818,13 @@ export default class StationDataChart extends Vue {
 
 		this.spliceAlerts2Instance(this.alertLevels)
 		for (let index = 0; index < this.tideList.length; index++) {
-			const element = this.tideList[index] + this.surgeList[index]
+			// TODO:[-] 24-09-06 此处加入判断若增水与天文潮有一个值为null则将总潮位赋值为null
+			let element: number | null = null
+			if (this.tideList[index] != null && this.surgeList[index] != null) {
+				element = this.tideList[index] + this.surgeList[index]
+			} else {
+				element = null
+			}
 			this.totalSurgeList.push(element)
 		}
 		// const d85: number = d85filter.length > 0 ? d85filter[0].d85 : DEFAULT_VAL

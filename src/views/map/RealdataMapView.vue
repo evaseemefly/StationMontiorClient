@@ -14,19 +14,19 @@
 			id="ceshimap"
 		>
 			<l-tile-layer :url="url" :attribution="attribution"></l-tile-layer>
-			<l-wms-tile-layer
+			<!-- <l-wms-tile-layer
 				:baseUrl="ninelineWMS.url"
 				:layers="ninelineWMS.options.layer"
 				:format="ninelineWMS.options.format"
 				:transparent="ninelineWMS.options.transparent"
-			></l-wms-tile-layer>
+			></l-wms-tile-layer> -->
 			<!-- 南海岛礁 -->
-			<l-wms-tile-layer
+			<!-- <l-wms-tile-layer
 				:baseUrl="southlandWMS.url"
 				:layers="southlandWMS.options.layer"
 				:format="southlandWMS.options.format"
 				:transparent="southlandWMS.options.transparent"
-			></l-wms-tile-layer>
+			></l-wms-tile-layer> -->
 
 			<!-- TODO:[-] 20-08-26 新加入的世界国境线 -->
 			<!-- <l-wms-tile-layer

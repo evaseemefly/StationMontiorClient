@@ -77,6 +77,13 @@ const DEFAULT_VAL = -9999
 // 对应 db: dict_base -> 默认的 code
 const DEFAULT_DICT_KEY = -1
 
+/**
+ * 最大风速上限
+ */
+const MAX_WS = 50
+
+const MAX_SURGE = 9999
+
 /** + 24-04-12 默认值集合 */
 const DEFAULT_VAL_LIST = [
 	DEFAULT_ALERT_TIDE,
@@ -125,4 +132,6 @@ export {
 	DEFAULT_SITE_NAME,
 	DEFAULT_SITE_CODE,
 	NULL_DIR,
+	MAX_WS,
+	MAX_SURGE,
 }

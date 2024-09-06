@@ -274,6 +274,14 @@ class IconStaticsCirle implements IIconImplement {
 		const colorStr = '#000000'
 		return colorStr
 	}
+
+	/**
+	 * @description 根据 this.iconType:IconTypeEnum 动态生成标签的 cls 名称
+	 * @author evaseemefly
+	 * @date 2024/09/04
+	 * @returns {*}  {string}
+	 * @memberof IconStaticsCirle
+	 */
 	getClassName(): string {
 		let defaultClassName = 'default_icon'
 		switch (this.iconType) {
@@ -1069,7 +1077,9 @@ const addStaticsIcon2Map = (
 		const tempStationName = temp.name
 		const tempIconType = temp.iconType
 
-		/** 当前icon的 class 样式名称 */
+		/** 当前icon的 class 样式名称
+		 * @deprecated 24-09-03 动态cls name 由 icon.ts -> IconStaticsCirle -> getClassName 动态生成并在 toHtml 生成div 标签段
+		 */
 		let tempIconClsName = 'icon_static_default'
 
 		switch (tempIconType) {
@@ -1088,7 +1098,7 @@ const addStaticsIcon2Map = (
 		const iconTitleOnly = new IconOnlyTitle(temp.name, temp.code)
 		/** 只有标题的icon */
 		const titleIcon: L.DivIcon = L.divIcon({
-			className: `surge_pulsing_icon_default ${iconTitleOnly.getClassName()} ${tempIconClsName}`,
+			className: `surge_pulsing_icon_default ${iconTitleOnly.getClassName()} `,
 			html: iconTitleOnly.toHtml(),
 			iconAnchor: [-20, 30],
 		})

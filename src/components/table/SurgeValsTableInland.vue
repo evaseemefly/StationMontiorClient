@@ -232,9 +232,13 @@ export default class SurgeValsTableInLand extends Vue {
 		this.hoverIndex = val
 	}
 
-	get totalSurgeList(): number[] {
-		let total: number[] = this.surgeList.map((val, index) => {
-			return val + this.tideList[index]
+	get totalSurgeList(): (number | null)[] {
+		let total: (number | null)[] = this.surgeList.map((val, index) => {
+			if (val !== null && this.tideList[index] != null) {
+				return val + this.tideList[index]
+			} else {
+				return null
+			}
 		})
 		return total
 	}
