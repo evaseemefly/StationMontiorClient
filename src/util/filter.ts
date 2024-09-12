@@ -241,6 +241,26 @@ const standardValSingular = (vals: number[], elementType: ObserveElementEnum) =>
 	return filteredVals
 }
 
+/**
+ * 对 surge 与对应 ts进行标准化处理
+ * @param vals
+ * @returns
+ */
+const standardSurgeAndTsVals = (vals: { surgeList: number[]; tsList: number[] }) => {
+	const filteredVals: { surgeList: number[]; tsList: number[] } = { surgeList: [], tsList: [] }
+	for (let index = 0; index < filteredVals.surgeList.length; index++) {
+		const surge = vals.surgeList[index]
+		const ts = vals.tsList[index]
+		let standardSurge: number | null = surge
+		if (surge > MAX_SURGE) {
+			standardSurge = null
+		}
+		filteredVals.surgeList.push(standardSurge)
+		filteredVals.tsList.push(ts)
+	}
+	return filteredVals
+}
+
 /** TODO:[-] 24-09-06 将潮位数据进行标准化
  * > MAX_SURGE 的赋值为null
  */
@@ -705,4 +725,5 @@ export {
 	formatUnVectorFixed2Str,
 	standardValSingular,
 	standardSurgeSingular,
+	standardSurgeAndTsVals,
 }

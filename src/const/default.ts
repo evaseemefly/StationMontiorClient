@@ -82,7 +82,7 @@ const DEFAULT_DICT_KEY = -1
  */
 const MAX_WS = 50
 
-const MAX_SURGE = 9999
+const MAX_SURGE = 1999
 
 /** + 24-04-12 默认值集合 */
 const DEFAULT_VAL_LIST = [

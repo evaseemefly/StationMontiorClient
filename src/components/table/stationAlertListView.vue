@@ -60,6 +60,7 @@ import { MS_UNIT } from '@/const/unit'
 import { StationMaximumSurgeMideModel } from '@/middle_model/surge'
 import { SiteBaseDigestMidModel } from '@/middle_model/site'
 import { ObservationTypeEnum } from '@/enum/common'
+import { DEFAULT_SITE_NAME } from '@/const/default'
 
 /** 警戒潮位集合视图 */
 @Component({
@@ -172,17 +173,27 @@ export default class StationAlertListView extends Vue {
 					}
 				}
 				const tempStationDict = this.stationNameDicts.find((d) => d.name == tempCode)
-				const tempStationExtremumMerge = {
-					stationCode: tempCode,
-					stationName: tempStationDict.chname,
-					surge: temp.surge,
-					dt: new Date(temp.ts * MS_UNIT),
-					code: tempCode,
-					name_en: tempCode,
-					alerts: alerts,
-					sort: tempStationDict.sort,
+				if (tempStationDict != null) {
+					// TODO:[*] 24-09-9 加入了 try 语句块
+					try {
+						const tempStationExtremumMerge = {
+							stationCode: tempCode,
+							stationName:
+								'chname' in tempStationDict
+									? tempStationDict.chname
+									: DEFAULT_SITE_NAME,
+							surge: temp.surge,
+							dt: new Date(temp.ts * MS_UNIT),
+							code: tempCode,
+							name_en: tempCode,
+							alerts: alerts,
+							sort: tempStationDict.sort,
+						}
+						stationExtremumMergeList.push(tempStationExtremumMerge)
+					} catch (error) {
+						console.warn(`当前${tempStationDict}字典有误`)
+					}
 				}
-				stationExtremumMergeList.push(tempStationExtremumMerge)
 			})
 		}
 		// 进行一次sort排序

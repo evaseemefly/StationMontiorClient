@@ -103,10 +103,11 @@
 						:class="index === hoverIndex ? 'activate' : 'un-activate'"
 						@mouseover="toSetHoverIndex(index)"
 					>
+						<!-- TODO:[-] 24-09-12 注意风向是来风方向，需要+180度 -->
 						<div
 							class="row-arrow"
 							v-show="!isHideDir(item)"
-							:style="{ transform: 'rotate(' + item + 'deg)' }"
+							:style="{ transform: wd2Str(item) }"
 						>
 							<i class="fa-solid fa-arrow-up"></i>
 						</div>
@@ -267,6 +268,18 @@ export default class SurgeValsTableInLand extends Vue {
 			splittedWdList = this.wdList.slice(0, this.MAX_WS_COUNT)
 		}
 		return splittedWdList
+	}
+
+	/** @deprecated
+	 *  24-09-12 报文中的风向表示的是来向的方向，需要+180度 */
+	convertWd(dir: number): number {
+		return dir + 180
+	}
+
+	/** TODO:[-] 24-09-12 风速转换为style中的旋转角度(注意:报文中的风向为风来时的风向，需要+180度) */
+	wd2Str(dir: number): string {
+		const covertedWD: number = dir + 180
+		return 'rotate(' + covertedWD + 'deg)'
 	}
 
 	isHideDir(val: number): boolean {

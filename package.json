@@ -34,7 +34,7 @@
     "geotiff": "^2.0.7",
     "heatmap.js": "^2.0.5",
     "interactjs": "^1.10.17",
-    "leaflet": "^1.6.0",
+    "leaflet": "^1.8.0",
     "leaflet-canvaslayer-field": "^1.4.1",
     "leaflet-markers-canvas": "^0.2.2",
     "leaflet-polycolor": "^1.1.1",
@@ -52,7 +52,7 @@
     "vue-interact": "^0.4.1",
     "vue-property-decorator": "^9.1.2",
     "vue-router": "^3.5.1",
-    "vue2-leaflet": "^2.2.1",
+    "vue2-leaflet": "^2.5.2",
     "vuex": "^3.6.2",
     "vuex-class": "^0.3.2"
   },

@@ -47,7 +47,7 @@
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator'
 import { Getter, Mutation, State, namespace } from 'vuex-class'
-import { DEFAULT_TY_NUM, NONE_STATION_NAME } from '@/const/default'
+import { DEFAULT_SITE_NAME, DEFAULT_TY_NUM, NONE_STATION_NAME } from '@/const/default'
 // 父类
 // import x from './baseExpandView.vue'
 // store
@@ -204,16 +204,26 @@ export default class StationExtremumListView extends Vue {
 					const tempStationDict = this.stationNameDict.find((x) => {
 						return x.name == element.stationCode
 					})
-					const tempMixSurge = {
-						stationCode: element.stationCode,
-						stationName: tempStationDict.chname,
-						surge: surgeMaxVal,
-						// realdata: tempSurge,
-						// tide: tempTide,
-						dt: new Date(surgeMaxTs * MS_UNIT),
-						sort: tempStationDict.sort,
+					if (tempStationDict != null) {
+						// TODO:[*] 24-09-9 加入了 try 语句块
+						try {
+							const tempMixSurge = {
+								stationCode: element.stationCode,
+								stationName:
+									'chname' in tempStationDict
+										? tempStationDict.chname
+										: DEFAULT_SITE_NAME,
+								surge: surgeMaxVal,
+								// realdata: tempSurge,
+								// tide: tempTide,
+								dt: new Date(surgeMaxTs * MS_UNIT),
+								sort: tempStationDict.sort,
+							}
+							stationSurgeMixList.push(tempMixSurge)
+						} catch (e) {
+							console.warn(`当前${tempStationDict}字典有误`)
+						}
 					}
-					stationSurgeMixList.push(tempMixSurge)
 				}
 			}
 		}
@@ -221,6 +231,7 @@ export default class StationExtremumListView extends Vue {
 		stationSurgeMixList = stationSurgeMixList.sort((a, b) => {
 			return a.sort - b.sort
 		})
+
 		this.stationSurgeMixList = stationSurgeMixList
 	}
 

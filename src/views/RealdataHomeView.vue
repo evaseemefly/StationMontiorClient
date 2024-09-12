@@ -84,6 +84,7 @@ import {
 	DEFAULT_TY_NUM,
 	DEFAULT_VAL,
 	DEFAULT_VAL_LIST,
+	MAX_SURGE,
 } from '@/const/default'
 // vuex
 import {
@@ -131,7 +132,7 @@ import { DistStationSurgeListMidModel } from '@/middle_model/surge'
 import { DistStationWindListMidModel } from '@/middle_model/wind'
 import { ObservationTypeEnum } from '@/enum/common'
 import { RouterView } from 'vue-router'
-import { fillDefaultVal2List } from '@/util/filter'
+import { fillDefaultVal2List, standardSurgeAndTsVals } from '@/util/filter'
 import station from '@/store/modules/station'
 
 /** + 24-03-11 实况Home页 */
@@ -253,16 +254,39 @@ export default class RealdataHomeView extends Vue {
 			})
 	}
 
-	async initRealData(startDt: Date, endDt: Date, sites: SiteBaseDigestMidModel[]) {
+	/**
+	 * 执行加载实况(loadSitesRealdata)以及是否加载静态统计数据(initStatisticalData)
+	 * @param startDt
+	 * @param endDt
+	 * @param sites
+	 * @param isUpdateStaticData 是否加载静态数据，默认加载
+	 */
+	async initRealData(
+		startDt: Date,
+		endDt: Date,
+		sites: SiteBaseDigestMidModel[],
+		isUpdateStaticData = true
+	) {
 		// TODO:[-] 24-06-20 此处加载的 start 与 end time 与传入的时间有歧义
 		const startTs = moment(startDt).valueOf() / MS_UNIT
 		const endTs = moment(endDt).valueOf() / MS_UNIT
 		// TODO:[-] 24-06-20 加载各静态及统计信息之前由onDtOp监听并执行，现统一修改于onSitesOpts 顺序执行
 
-		Promise.all([
-			this.initStatisticalData(startTs, endTs),
-			this.loadSitesRealdata(sites, startTs, endTs),
-		]).then(() => {
+		let promiseSeqences = [this.loadSitesRealdata(sites, startTs, endTs)]
+		if (isUpdateStaticData) {
+			promiseSeqences.push(this.initStatisticalData(startTs, endTs))
+		}
+
+		// Promise.all([
+		// 	// TODO:[*] 24-09-11 不需要每次都加载静态数据
+		// 	this.initStatisticalData(startTs, endTs),
+		// 	this.loadSitesRealdata(sites, startTs, endTs),
+		// ]).then(() => {
+		// 	// TODO:[-] 24-06-20 此处修改为加载统计数据与加载站点实况均加载完毕后再更新loaded开关
+		// 	this.setLoaded()
+		// })
+
+		Promise.all(promiseSeqences).then(() => {
 			// TODO:[-] 24-06-20 此处修改为加载统计数据与加载站点实况均加载完毕后再更新loaded开关
 			this.setLoaded()
 		})
@@ -374,7 +398,10 @@ export default class RealdataHomeView extends Vue {
 						let standardSurgeList: number[] = []
 						// 若为缺省值则填充null
 						for (let index = 0; index < temp.surge_list.length; index++) {
-							if (DEFAULT_VAL_LIST.includes(temp.surge_list[index])) {
+							if (
+								DEFAULT_VAL_LIST.includes(temp.surge_list[index]) ||
+								temp.surge_list[index] > MAX_SURGE
+							) {
 								standardSurgeList.push(null)
 							} else {
 								standardSurgeList.push(temp.surge_list[index])
@@ -775,16 +802,25 @@ export default class RealdataHomeView extends Vue {
 
 	/** TODO:[*] 24-06-17 此处替换原@Watch('getSites') 的操作，需要监听起止时间的变化 */
 	@Watch('SitesOpts')
-	onSitesOpts(val: { getStartDt: Date; getEndDt: Date; getSites: SiteBaseDigestMidModel[] }) {
+	onSitesOpts(
+		newVal: { getStartDt: Date; getEndDt: Date; getSites: SiteBaseDigestMidModel[] },
+		oldVal: { getStartDt: Date; getEndDt: Date; getSites: SiteBaseDigestMidModel[] }
+	) {
 		console.log(
-			`RealdataHomeView.vue -> onSitesOpts 监听到:${val.getStartDt},${
-				val.getEndDt
-			},${val.getSites.map((temp) => {
+			`RealdataHomeView.vue -> onSitesOpts 监听到:${newVal.getStartDt},${
+				newVal.getEndDt
+			},${newVal.getSites.map((temp) => {
 				return temp.stationCode
 			})}发生变化`
 		)
+
+		/** 是否需要触发统计数据 */
+		const isUpdateStaticData = !(
+			newVal.getStartDt.getTime() == oldVal.getStartDt.getTime() &&
+			newVal.getEndDt.getTime() == oldVal.getEndDt.getTime()
+		)
 		// TODO:[-] 24-06-20 此处加载的 start 与 end time 与传入的时间有歧义
-		this.initRealData(val.getStartDt, val.getEndDt, val.getSites)
+		this.initRealData(newVal.getStartDt, newVal.getEndDt, newVal.getSites, isUpdateStaticData)
 	}
 
 	/** 获取当前选定的站点 */

@@ -53,7 +53,7 @@
 						<div
 							class="row-arrow"
 							v-if="isVector(itemObs, item)"
-							:style="{ transform: 'rotate(' + item + 'deg)' }"
+							:style="{ transform: wd2Str(item) }"
 						>
 							<i class="fa-solid fa-arrow-up"></i>
 						</div>
@@ -148,6 +148,12 @@ export default class ObserveElementValsTableView extends Vue {
 	}
 
 	toSetHoverIndex(index: number): void {}
+
+	/** TODO:[-] 24-09-12 风速转换为style中的旋转角度(注意:报文中的风向为风来时的风向，需要+180度) */
+	wd2Str(dir: number): string {
+		const covertedWD: number = dir + 180
+		return 'rotate(' + covertedWD + 'deg)'
+	}
 }
 </script>
 <style scoped lang="less">
