@@ -113,6 +113,16 @@ import { StationBaseInfoMidModel } from '@/middle_model/station'
 import { MS_UNIT } from '@/const/unit'
 import AlertLevelRowView from '../rows/alertLevelRow.vue'
 
+/** TODO:[-] 24-09-18 潮位站legend的英文name与中文name的转换 */
+const formatterLegendName = (name: string): string => {
+	const dict_legend = new Map([
+		['tide', '天文潮'],
+		['surge', '实况潮位'],
+		['difftide', '风暴增水'],
+	])
+	return dict_legend.has(name) ? dict_legend.get(name) : '默认'
+}
+
 @Component({
 	filters: {
 		filterProductTypeName,
@@ -599,6 +609,9 @@ export default class StationDataChart extends Vue {
 			legend: {
 				data: legendData,
 				right: '10%',
+				formatter: function (name: string): string {
+					return formatterLegendName(name)
+				},
 			},
 			grid: {
 				left: '3%',
